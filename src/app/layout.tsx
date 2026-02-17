@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 };
 
 import { TooltipProvider } from "@/components/ui/tooltip"
+import QueryProvider from "@/providers/query-provider"
 
 export default function RootLayout({
   children,
@@ -33,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={`${beVietnamPro.variable} ${geistMono.variable} font-sans antialiased`}>
-        <TooltipProvider>{children}</TooltipProvider>
+        <QueryProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </QueryProvider>
       </body>
     </html>
   );

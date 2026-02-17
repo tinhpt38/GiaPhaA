@@ -17,6 +17,7 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     Dialog,
     DialogContent,
@@ -42,9 +43,6 @@ interface Profile {
 }
 
 export default function DashboardPage() {
-    const [trees, setTrees] = useState<Tree[]>([])
-    const [loading, setLoading] = useState(true)
-    const [profile, setProfile] = useState<Profile | null>(null)
     const [user, setUser] = useState<any>(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -53,38 +51,52 @@ export default function DashboardPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const supabase = createClient()
     const router = useRouter()
+    const queryClient = useQueryClient()
 
+    // 1. Kiểm tra xác thực
     useEffect(() => {
-        async function loadData() {
+        const checkAuth = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) {
                 router.push('/login')
                 return
             }
             setUser(user)
+        }
+        checkAuth()
+    }, [router, supabase])
 
-            // Fetch Profile
-            const { data: profileData } = await supabase
+    // 2. Lấy Profile với Cache
+    const { data: profileData, isLoading: isProfileLoading } = useQuery({
+        queryKey: ['profile', user?.id],
+        queryFn: async () => {
+            const { data } = await supabase
                 .from('profiles')
                 .select('plan_tier, full_name')
-                .eq('id', user.id)
+                .eq('id', user?.id)
                 .single()
+            return data as Profile
+        },
+        enabled: !!user?.id,
+    })
 
-            setProfile(profileData)
-
-            // Fetch Trees
-            const { data: treesData } = await supabase
+    // 3. Lấy danh sách Gia phả với Cache
+    const { data: treesData, isLoading: isTreesLoading } = useQuery({
+        queryKey: ['trees', user?.id],
+        queryFn: async () => {
+            const { data } = await supabase
                 .from('trees')
                 .select('*')
-                .eq('owner_id', user.id)
+                .eq('owner_id', user?.id)
                 .order('created_at', { ascending: false })
+            return data as Tree[]
+        },
+        enabled: !!user?.id,
+    })
 
-            if (treesData) setTrees(treesData)
-            setLoading(false)
-        }
-
-        loadData()
-    }, [router, supabase])
+    const effectiveTrees = treesData || []
+    const effectiveProfile = profileData
+    const isLoading = isProfileLoading || (isTreesLoading && effectiveTrees.length === 0)
 
     const handleCreateTree = async () => {
         if (!newTreeName.trim()) {
@@ -109,8 +121,9 @@ export default function DashboardPage() {
         setIsSubmitting(false)
         if (error) {
             alert(error.message)
-        } else if (data) {
-            setTrees([data, ...trees])
+        } else {
+            // Làm mới cache mà không cần reload trang
+            queryClient.invalidateQueries({ queryKey: ['trees', user?.id] })
             setIsCreateDialogOpen(false)
             setNewTreeName('')
             setNewTreeDescription('')
@@ -119,25 +132,23 @@ export default function DashboardPage() {
 
     const openCreateDialog = () => {
         // Optimistic check before server check
-        if (profile?.plan_tier === 'hieu' && trees.length >= 2) {
+        if (effectiveProfile?.plan_tier === 'hieu' && effectiveTrees.length >= 2) {
             alert('Gói Hiếu chỉ được tạo tối đa 2 gia phả. Vui lòng nâng cấp gói Đạo để tạo thêm.')
             return
         }
         setIsCreateDialogOpen(true)
     }
 
-    if (loading) {
+    // Nếu chưa có user (đang check auth), hiển thị màn hình chờ nhỏ
+    if (!user && !effectiveTrees.length) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 text-primary animate-pulse" />
-                    <p className="text-muted-foreground">Đang tải dữ liệu...</p>
-                </div>
+            <div className="flex h-screen items-center justify-center bg-[#f8f6f6]">
+                <BookOpen className="h-10 w-10 text-primary animate-pulse" />
             </div>
         )
     }
 
-    const userName = profile?.full_name || user?.email?.split('@')[0] || 'Bạn'
+    const userName = effectiveProfile?.full_name || user?.email?.split('@')[0] || 'Bạn'
 
     return (
         <div className="min-h-screen bg-[#f8f6f6]">
@@ -167,7 +178,7 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-3 border-l border-gray-200 pl-6">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-bold text-gray-900">{userName}</p>
-                                <p className="text-xs text-gray-500 uppercase">{profile?.plan_tier || 'Thường'}</p>
+                                <p className="text-xs text-gray-500 uppercase">{effectiveProfile?.plan_tier || 'Thường'}</p>
                             </div>
                             <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
                                 {userName.charAt(0).toUpperCase()}
@@ -188,98 +199,32 @@ export default function DashboardPage() {
                     />
                     <div className="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-white/10 to-transparent pointer-events-none" />
 
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="relative z-10">
                         <div>
-                            <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-xs font-bold uppercase tracking-widest mb-4">
-                                Chào mừng trở lại
-                            </span>
-                            <h3 className="text-3xl md:text-4xl font-bold mb-2">Chào mừng, {userName}!</h3>
-                            <p className="text-white/80 max-w-lg leading-relaxed">
-                                Bạn đang quản lý {trees.length} gia phả.
-                                {trees.length === 0 ? ' Hãy bắt đầu tạo gia phả đầu tiên của bạn.' : ' Tiếp tục xây dựng và hoàn thiện cây gia phả của dòng họ.'}
+                            <p className="text-sm text-white/80 mb-2 font-medium">Chào mừng bạn trở lại,</p>
+                            <h1 className="text-3xl md:text-4xl font-black mb-4">
+                                {isLoading ? "Đang chuẩn bị dữ liệu..." : `Gia tộc ${userName}`}
+                            </h1>
+                            <p className="text-lg text-white/90 max-w-xl leading-relaxed">
+                                Nơi lưu giữ linh hồn và câu chuyện của dòng họ qua từng thế hệ. Hãy tiếp tục gieo mầm cho cây đại thụ gia đình mình.
                             </p>
-                            <div className="flex gap-4 mt-8">
-                                {trees.length > 0 ? (
-                                    <Link href={`/tree/${trees[0].id}`}>
-                                        <Button className="bg-white text-primary hover:bg-white/90 font-bold shadow-xl">
-                                            Xem Cây Gia Phả
-                                        </Button>
-                                    </Link>
-                                ) : (
-                                    <Button onClick={handleCreateTree} className="bg-white text-primary hover:bg-white/90 font-bold shadow-xl">
-                                        Tạo Gia Phả Đầu Tiên
-                                    </Button>
-                                )}
-                                <Link href="/dashboard/generations">
-                                    <Button variant="outline" className="bg-primary/20 border-white/30 text-white hover:bg-white/10 font-bold">
-                                        Tìm hiểu Cửu tộc
-                                    </Button>
-                                </Link>
-                            </div>
                         </div>
-                        <div className="hidden lg:block">
-                            <BookOpen className="w-40 h-40 opacity-20" />
+                        <div className="mt-8 flex gap-4">
+                            <Button size="lg" onClick={openCreateDialog} className="bg-white text-primary hover:bg-white/90 font-bold px-8 shadow-xl">
+                                <Plus className="mr-2 h-5 w-5" /> Tạo gia phả mới
+                            </Button>
+                            <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10 font-bold px-8">
+                                Tìm hiểu thêm
+                            </Button>
                         </div>
                     </div>
+                    {/* Decorative element */}
+                    <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl text-white"></div>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card className="border-gray-100">
-                        <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <div className="size-10 rounded-lg bg-red-100 text-primary flex items-center justify-center mb-2">
-                                        <Layers className="w-5 h-5" />
-                                    </div>
-                                    <p className="text-sm text-gray-500 font-medium">Tổng số gia phả</p>
-                                    <div className="flex items-end gap-2 mt-1">
-                                        <h4 className="text-3xl font-bold">{trees.length}</h4>
-                                        <span className="text-xs text-gray-400 mb-1">
-                                            / {profile?.plan_tier === 'dao' ? '∞' : '2'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
 
-                    <Card className="border-gray-100">
-                        <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <div className="size-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center mb-2">
-                                        <Users className="w-5 h-5" />
-                                    </div>
-                                    <p className="text-sm text-gray-500 font-medium">Gói hiện tại</p>
-                                    <div className="flex items-end gap-2 mt-1">
-                                        <h4 className="text-3xl font-bold uppercase">{profile?.plan_tier || 'Thường'}</h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
 
-                    <Card className="border-gray-100">
-                        <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <div className="size-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
-                                        <Calendar className="w-5 h-5" />
-                                    </div>
-                                    <p className="text-sm text-gray-500 font-medium">Tham gia từ</p>
-                                    <div className="flex items-end gap-2 mt-1">
-                                        <h4 className="text-lg font-bold">
-                                            {new Date(user?.created_at).toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' })}
-                                        </h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Family Trees Grid */}
+                {/* Family Trees Grid - Skeleton Support */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-bold text-gray-800">Cây gia phả của bạn</h3>
@@ -289,36 +234,58 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {trees.filter(tree => tree.name.toLowerCase().includes(searchQuery.toLowerCase())).map((tree) => (
-                            <Link key={tree.id} href={`/tree/${tree.id}`}>
-                                <Card className="group border-none shadow-lg hover:shadow-2xl transition-all duration-300 bg-white overflow-hidden rounded-2xl h-full">
-                                    <CardContent className="p-6">
-                                        <div className="flex items-start gap-3 mb-4">
-                                            <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                                <BookOpen className="w-6 h-6" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-lg font-bold mb-1 truncate">{tree.name}</h3>
-                                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                                    {tree.description || 'Chưa có mô tả'}
-                                                </p>
-                                            </div>
+                        {isLoading ? (
+                            // Skeleton Cards
+                            [1, 2, 3].map((i) => (
+                                <div key={i} className="bg-white rounded-2xl h-[180px] shadow-sm animate-pulse flex flex-col p-6 space-y-4">
+                                    <div className="flex gap-4">
+                                        <div className="w-12 h-12 bg-gray-200 rounded-xl" />
+                                        <div className="flex-1 space-y-2 pt-1">
+                                            <div className="h-4 bg-gray-200 rounded w-3/4" />
+                                            <div className="h-3 bg-gray-100 rounded w-1/2" />
                                         </div>
+                                    </div>
+                                    <div className="flex-1" />
+                                    <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+                                        <div className="h-3 bg-gray-100 rounded w-1/4" />
+                                        <div className="h-8 bg-gray-200 rounded w-20" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            effectiveTrees
+                                .filter(tree => tree.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                .map((tree) => (
+                                    <Link key={tree.id} href={`/tree/${tree.id}`}>
+                                        <Card className="group border-none shadow-lg hover:shadow-2xl transition-all duration-300 bg-white overflow-hidden rounded-2xl h-full">
+                                            <CardContent className="p-6">
+                                                <div className="flex items-start gap-3 mb-4">
+                                                    <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                                        <BookOpen className="w-6 h-6" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="text-lg font-bold mb-1 truncate">{tree.name}</h3>
+                                                        <p className="text-sm text-muted-foreground line-clamp-2">
+                                                            {tree.description || 'Chưa có mô tả'}
+                                                        </p>
+                                                    </div>
+                                                </div>
 
-                                        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                                            <span className="text-xs text-muted-foreground">
-                                                {new Date(tree.created_at).toLocaleDateString('vi-VN')}
-                                            </span>
-                                            <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-white transition-colors">
-                                                Xem <ChevronRight className="w-4 h-4 ml-1" />
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                        ))}
+                                                <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {new Date(tree.created_at).toLocaleDateString('vi-VN')}
+                                                    </span>
+                                                    <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-white transition-colors">
+                                                        Xem <ChevronRight className="w-4 h-4 ml-1" />
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </Link>
+                                ))
+                        )}
 
-                        {trees.length === 0 && (
+                        {!isLoading && effectiveTrees.length === 0 && (
                             <div className="col-span-full">
                                 <Card className="border-2 border-dashed border-gray-200">
                                     <CardContent className="text-center py-16">

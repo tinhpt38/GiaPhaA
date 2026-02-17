@@ -26,35 +26,35 @@ export function PrayerTexts() {
 
     // Nhóm các bài văn khấn theo category
     const categories = {
-        'sinh_duong': 'Lễ mừng thọ, cưới hỏi, sinh dưỡng',
-        'tang_gio': 'Lễ tang, giỗ tổ tiên',
-        'tet': 'Tết Nguyên Đán',
-        'le_khac': 'Các ngày lễ tết khác',
-        'chua_dinh': 'Lễ chùa, đình, miếu',
-        'nha_o': 'Làm nhà, chuyển nhà, tân gia, khai trương'
+        'sinh_duong': 'Sinh dưỡng & Hiếu hỉ',
+        'tang_gio': 'Tang lễ & Giỗ chạp',
+        'tet': 'Lễ Tết trong năm',
+        'nha_o': 'Nhà ở & Công trình',
+        'chua_dinh': 'Lễ Chùa, Đình, Miếu',
+        'le_khac': 'Hướng dẫn & Lễ khác'
     }
 
     const groupedPrayers: Record<string, Prayer[]> = {
         sinh_duong: [],
         tang_gio: [],
         tet: [],
-        le_khac: [],
+        nha_o: [],
         chua_dinh: [],
-        nha_o: []
+        le_khac: []
     }
 
     // Phân loại các bài văn khấn
     prayerData.forEach((prayer) => {
         const cat = prayer.category.toLowerCase()
-        if (cat.includes('mừng thọ') || cat.includes('cưới') || cat.includes('sinh')) {
+        if (cat.includes('sinh dưỡng')) {
             groupedPrayers.sinh_duong.push(prayer)
-        } else if (cat.includes('tang') || cat.includes('giỗ')) {
+        } else if (cat.includes('tang lễ') || cat.includes('giỗ')) {
             groupedPrayers.tang_gio.push(prayer)
-        } else if (cat.includes('tết nguyên đán') || cat.includes('táo') || cat.includes('giao thừa')) {
+        } else if (cat.includes('tết') || cat.includes('táo') || cat.includes('giao thừa')) {
             groupedPrayers.tet.push(prayer)
-        } else if (cat.includes('chùa') || cat.includes('đình') || cat.includes('miếu') || cat.includes('phật')) {
+        } else if (cat.includes('chùa') || cat.includes('đình') || cat.includes('miếu')) {
             groupedPrayers.chua_dinh.push(prayer)
-        } else if (cat.includes('nhà') || cat.includes('khai trương') || cat.includes('tân gia')) {
+        } else if (cat.includes('nhà') || cat.includes('đất') || cat.includes('khai trương')) {
             groupedPrayers.nha_o.push(prayer)
         } else {
             groupedPrayers.le_khac.push(prayer)
@@ -66,18 +66,18 @@ export function PrayerTexts() {
             <CardHeader>
                 <CardTitle className="text-2xl">Tuyển tập các bài văn khấn thông dụng</CardTitle>
                 <p className="text-sm text-muted-foreground mt-2">
-                    Sưu tầm và biên soạn {prayerData.length} bài văn khấn cho các dịp lễ Tết, hiếu hỉ
+                    Sưu tầm và biên soạn {prayerData.length} bài văn khấn và hướng dẫn nghi lễ
                 </p>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="sinh_duong" className="w-full">
                     <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
                         <TabsTrigger value="sinh_duong">Sinh dưỡng</TabsTrigger>
-                        <TabsTrigger value="tang_gio">Giỗ/Tang</TabsTrigger>
-                        <TabsTrigger value="tet">Tết</TabsTrigger>
-                        <TabsTrigger value="le_khac">Lễ khác</TabsTrigger>
-                        <TabsTrigger value="chua_dinh">Chùa/Đình</TabsTrigger>
+                        <TabsTrigger value="tang_gio">Tang/Giỗ</TabsTrigger>
+                        <TabsTrigger value="tet">Lễ Tết</TabsTrigger>
                         <TabsTrigger value="nha_o">Nhà ở</TabsTrigger>
+                        <TabsTrigger value="chua_dinh">Chùa/Đình</TabsTrigger>
+                        <TabsTrigger value="le_khac">Khác</TabsTrigger>
                     </TabsList>
 
                     {Object.entries(groupedPrayers).map(([key, prayers]) => (
