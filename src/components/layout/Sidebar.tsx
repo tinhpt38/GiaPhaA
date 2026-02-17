@@ -32,10 +32,10 @@ export function Sidebar() {
     const pathname = usePathname()
 
     return (
-        <div className="flex h-screen w-64 flex-col border-r bg-white">
+        <div className="hidden lg:flex h-screen w-64 flex-col border-r bg-white shrink-0">
             <div className="p-6 border-b">
-                <h2 className="text-2xl font-bold text-primary">Gia Phả</h2>
-                <p className="text-sm text-muted-foreground">Quản lý dòng họ</p>
+                <h2 className="text-2xl font-bold text-primary">Gia Phả Việt</h2>
+                <p className="text-sm text-muted-foreground">Giữ gìn cội nguồn, kết nối tương lai</p>
             </div>
 
             <nav className="flex-1 overflow-y-auto p-4">

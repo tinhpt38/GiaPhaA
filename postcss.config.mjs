@@ -4,4 +4,5 @@ const config = {
   },
 };
 
+// Forced rebuild trigger
 export default config;

@@ -62,52 +62,56 @@ export function PrayerTexts() {
     })
 
     return (
-        <Card className="h-full">
-            <CardHeader>
-                <CardTitle className="text-2xl">Tuyển tập các bài văn khấn thông dụng</CardTitle>
-                <p className="text-sm text-muted-foreground mt-2">
+        <Card className="h-full border-none md:border shadow-none md:shadow-sm">
+            <CardHeader className="px-4 md:px-6">
+                <CardTitle className="text-xl md:text-2xl">Tuyển tập văn khấn thông dụng</CardTitle>
+                <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2">
                     Sưu tầm và biên soạn {prayerData.length} bài văn khấn và hướng dẫn nghi lễ
                 </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 md:px-6">
                 <Tabs defaultValue="sinh_duong" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-                        <TabsTrigger value="sinh_duong">Sinh dưỡng</TabsTrigger>
-                        <TabsTrigger value="tang_gio">Tang/Giỗ</TabsTrigger>
-                        <TabsTrigger value="tet">Lễ Tết</TabsTrigger>
-                        <TabsTrigger value="nha_o">Nhà ở</TabsTrigger>
-                        <TabsTrigger value="chua_dinh">Chùa/Đình</TabsTrigger>
-                        <TabsTrigger value="le_khac">Khác</TabsTrigger>
-                    </TabsList>
+                    <div className="relative">
+                        <TabsList className="flex items-center justify-start h-auto p-1 bg-muted/50 rounded-lg overflow-x-auto no-scrollbar scroll-smooth flex-nowrap lg:grid lg:grid-cols-6 lg:gap-1">
+                            <TabsTrigger value="sinh_duong" className="flex-shrink-0 px-4 py-2 text-xs lg:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">Sinh dưỡng</TabsTrigger>
+                            <TabsTrigger value="tang_gio" className="flex-shrink-0 px-4 py-2 text-xs lg:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">Tang/Giỗ</TabsTrigger>
+                            <TabsTrigger value="tet" className="flex-shrink-0 px-4 py-2 text-xs lg:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">Lễ Tết</TabsTrigger>
+                            <TabsTrigger value="nha_o" className="flex-shrink-0 px-4 py-2 text-xs lg:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">Nhà ở</TabsTrigger>
+                            <TabsTrigger value="chua_dinh" className="flex-shrink-0 px-4 py-2 text-xs lg:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">Chùa/Đình</TabsTrigger>
+                            <TabsTrigger value="le_khac" className="flex-shrink-0 px-4 py-2 text-xs lg:text-sm whitespace-nowrap data-[state=active]:bg-white data-[state=active]:shadow-sm">Lễ khác</TabsTrigger>
+                        </TabsList>
+                        {/* Gradient shadows to indicate scroll on mobile */}
+                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-muted/50 to-transparent pointer-events-none lg:hidden opacity-50" />
+                    </div>
 
                     {Object.entries(groupedPrayers).map(([key, prayers]) => (
-                        <TabsContent key={key} value={key} className="mt-6">
+                        <TabsContent key={key} value={key} className="mt-4 md:mt-6">
                             <div className="mb-4">
-                                <h3 className="text-lg font-semibold">{categories[key as keyof typeof categories]}</h3>
-                                <p className="text-sm text-muted-foreground">Có {prayers.length} bài văn khấn</p>
+                                <h3 className="text-base md:text-lg font-semibold">{categories[key as keyof typeof categories]}</h3>
+                                <p className="text-xs md:text-sm text-muted-foreground">Có {prayers.length} bài văn khấn</p>
                             </div>
 
-                            <ScrollArea className="h-[600px] pr-4">
+                            <ScrollArea className="h-[500px] md:h-[600px] pr-2 md:pr-4">
                                 <Accordion type="single" collapsible className="w-full">
                                     {prayers.map((prayer) => (
-                                        <AccordionItem key={prayer.stt} value={`prayer-${prayer.stt}`}>
-                                            <AccordionTrigger className="text-base font-medium hover:no-underline">
-                                                <div className="flex items-start gap-2 text-left">
-                                                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold">
+                                        <AccordionItem key={prayer.stt} value={`prayer-${prayer.stt}`} className="border-b-slate-100">
+                                            <AccordionTrigger className="py-3 md:py-4 text-sm md:text-base font-medium hover:no-underline">
+                                                <div className="flex items-start gap-3 text-left">
+                                                    <span className="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs md:text-sm font-bold">
                                                         {prayer.stt}
                                                     </span>
-                                                    <span>{prayer.title}</span>
+                                                    <span className="line-clamp-2 md:line-clamp-none">{prayer.title}</span>
                                                 </div>
                                             </AccordionTrigger>
-                                            <AccordionContent className="space-y-3 text-sm">
-                                                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
-                                                    <p className="text-xs text-amber-800 font-medium mb-1">Phân loại:</p>
-                                                    <p className="text-sm text-amber-900">{prayer.category}</p>
+                                            <AccordionContent className="space-y-4 pt-1 pb-6">
+                                                <div className="bg-amber-50/50 border-l-4 border-amber-500 p-3 md:p-4 rounded-r-lg">
+                                                    <p className="text-[10px] md:text-xs text-amber-800 font-bold uppercase tracking-wider mb-1">Dịp lễ:</p>
+                                                    <p className="text-sm text-amber-900 font-medium">{prayer.category}</p>
                                                 </div>
                                                 <div className="prose prose-sm max-w-none">
-                                                    <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed bg-slate-50 p-4 rounded-lg border">
+                                                    <div className="whitespace-pre-wrap font-sans text-[13px] md:text-sm leading-relaxed bg-slate-50/80 p-4 md:p-6 rounded-xl border border-slate-200 shadow-inner">
                                                         {prayer.content}
-                                                    </pre>
+                                                    </div>
                                                 </div>
                                             </AccordionContent>
                                         </AccordionItem>

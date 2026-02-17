@@ -114,32 +114,33 @@ function TreeBuilderContent({
     return (
         <>
             {/* Top Header */}
-            <header className="h-16 flex items-center justify-between border-b border-[#e5e1e1] bg-white px-6 z-30 shrink-0">
-                <div className="flex items-center gap-3">
-                    <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <div className="bg-primary p-1.5 rounded-lg text-white">
-                            <BookOpen className="w-6 h-6" />
+            <header className="h-16 flex items-center justify-between border-b border-[#e5e1e1] bg-white px-3 md:px-6 z-30 shrink-0">
+                <div className="flex items-center gap-2 md:gap-3">
+                    <Link href="/dashboard" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
+                        <div className="bg-primary p-1 md:p-1.5 rounded-lg text-white">
+                            <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
-                        <div>
-                            <h1 className="text-lg font-bold leading-none">{tree?.name || 'Gia Phả'}</h1>
-                            <p className="text-xs text-[#9a4c4c] font-medium">Chỉnh sửa cây gia phả</p>
+                        <div className="min-w-0">
+                            <h1 className="text-sm md:text-lg font-bold leading-tight truncate max-w-[120px] sm:max-w-none">{tree?.name || 'Gia Phả'}</h1>
+                            <p className="text-[10px] md:text-xs text-[#9a4c4c] font-medium truncate">Chỉnh sửa</p>
                         </div>
                     </Link>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4">
                     {/* Member List Toggle */}
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setShowMemberList(!showMemberList)}
-                        className="flex items-center gap-2 border-[#e5e1e1]"
+                        className="flex items-center gap-2 border-[#e5e1e1] px-2 md:px-3"
                     >
                         <UsersIcon className="w-4 h-4" />
-                        <span>Danh sách ({members.length})</span>
+                        <span className="hidden sm:inline">Danh sách ({members.length})</span>
+                        <span className="sm:hidden">{members.length}</span>
                     </Button>
 
-                    <div className="flex items-center bg-white border border-[#e5e1e1] rounded-lg p-1">
+                    <div className="hidden md:flex items-center bg-white border border-[#e5e1e1] rounded-lg p-1">
                         <button
                             className="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"
                             title="Hoàn tác"
@@ -180,33 +181,36 @@ function TreeBuilderContent({
                         </button>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 md:gap-2">
                         <Button
                             onClick={handleExportPDF}
-                            className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+                            size="sm"
+                            className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90 h-8 md:h-9"
                         >
                             <FileDown className="w-4 h-4" />
-                            <span>Xuất PDF</span>
+                            <span className="hidden md:inline">Xuất PDF</span>
                         </Button>
-                        <Button variant="outline" className="flex items-center gap-2 bg-[#f3e7e7] text-[#1b0d0d] border-[#e5e1e1] hover:bg-[#eadbdb]">
+                        <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2 bg-[#f3e7e7] text-[#1b0d0d] border-[#e5e1e1] h-8 md:h-9">
                             <Share2 className="w-4 h-4" />
-                            <span>Chia sẻ</span>
+                            <span className="hidden md:inline">Chia sẻ</span>
                         </Button>
                     </div>
                 </div>
             </header>
 
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden relative">
                 {/* Left Detail Panel (moved from right) */}
                 {selectedState && (
-                    <aside className="w-1/3 min-w-[400px] max-w-[600px] bg-white border-r border-[#e5e1e1] flex flex-col z-20 overflow-hidden">
-                        <div className="p-5 border-b border-[#e5e1e1] flex justify-between items-center bg-[#fcf8f8]">
-                            <h3 className="font-bold text-[#1b0d0d]">
-                                {selectedState.mode === 'edit' ? 'Thông tin chi tiết' : 'Thêm thành viên mới'}
+                    <aside className="fixed inset-0 md:relative md:inset-auto md:w-1/3 md:min-w-[400px] md:max-w-[600px] bg-white md:border-r border-[#e5e1e1] flex flex-col z-40 md:z-20 overflow-hidden shadow-2xl md:shadow-none">
+                        <div className="p-4 md:p-5 border-b border-[#e5e1e1] flex justify-between items-center bg-[#fcf8f8]">
+                            <h3 className="font-bold text-[#1b0d0d] truncate pr-4">
+                                {selectedState.mode === 'edit'
+                                    ? `Chi tiết: ${selectedState.member?.full_name || ''}`
+                                    : 'Thêm thành viên mới'}
                             </h3>
                             <button
                                 onClick={() => setSelectedState(null)}
-                                className="text-[#9a4c4c] hover:text-[#1b0d0d] transition-colors"
+                                className="size-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#9a4c4c] hover:text-[#1b0d0d] transition-colors shrink-0"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -274,14 +278,14 @@ function TreeBuilderContent({
 
                 {/* Member List Sidebar (Toggle) */}
                 {showMemberList && (
-                    <aside className="w-80 bg-white border-l border-[#e5e1e1] flex flex-col z-30 shadow-xl">
+                    <aside className="fixed inset-0 md:relative md:inset-auto md:w-80 bg-white md:border-l border-[#e5e1e1] flex flex-col z-50 md:z-30 shadow-2xl md:shadow-xl">
                         <div className="p-4 border-b border-[#e5e1e1] flex justify-between items-center bg-[#fcf8f8]">
                             <h3 className="font-bold text-[#1b0d0d]">
-                                Danh sách thành viên ({filteredMembers.length})
+                                Danh sách ({filteredMembers.length})
                             </h3>
                             <button
                                 onClick={() => setShowMemberList(false)}
-                                className="text-[#9a4c4c] hover:text-[#1b0d0d] transition-colors"
+                                className="size-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#9a4c4c] hover:text-[#1b0d0d] transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>

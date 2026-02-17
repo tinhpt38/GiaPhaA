@@ -57,11 +57,7 @@ export default function SampleTreePage() {
     }
 
     return (
-        <div className="container mx-auto py-8 px-4 max-w-7xl">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">{tree.name}</h1>
-                <p className="text-muted-foreground">{tree.description}</p>
-            </div>
+        <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 lg:space-y-8">
 
             <Alert className="mb-6">
                 <Info className="h-4 w-4" />
@@ -194,8 +190,8 @@ export default function SampleTreePage() {
                                                                 )}
                                                             </div>
                                                             <span className={`px-2 py-1 rounded text-xs font-medium ${member.gender === 'male'
-                                                                    ? 'bg-blue-100 text-blue-700'
-                                                                    : 'bg-pink-100 text-pink-700'
+                                                                ? 'bg-blue-100 text-blue-700'
+                                                                : 'bg-pink-100 text-pink-700'
                                                                 }`}>
                                                                 {member.gender === 'male' ? 'Nam' : 'Nữ'}
                                                             </span>
@@ -225,8 +221,8 @@ export default function SampleTreePage() {
                                                                 </p>
                                                             )}
                                                             <div className={`inline-block mt-2 px-2 py-1 rounded text-xs ${member.is_alive
-                                                                    ? 'bg-green-100 text-green-700'
-                                                                    : 'bg-gray-100 text-gray-700'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : 'bg-gray-100 text-gray-700'
                                                                 }`}>
                                                                 {member.is_alive ? 'Còn sống' : 'Đã mất'}
                                                             </div>
