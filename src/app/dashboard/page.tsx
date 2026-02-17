@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -90,15 +90,17 @@ export default function DashboardPage() {
     if (loading) return <div className="p-8">Đang tải dữ liệu...</div>
 
     return (
-        <div className="container mx-auto py-10">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold">Danh sách Gia Phả</h1>
-                    <p className="text-muted-foreground mt-1">
-                        Gói hiện tại: <span className="font-semibold uppercase text-primary">{profile?.plan_tier || 'Thường'}</span>
-                        ({trees.length}/{profile?.plan_tier === 'dao' ? '∞' : '2'})
-                    </p>
-                </div>
+        <div className="container mx-auto py-8 px-4">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2">Danh sách Gia Phả</h1>
+                <p className="text-muted-foreground">
+                    Gói hiện tại: <span className="font-semibold uppercase text-primary">{profile?.plan_tier || 'Thường'}</span>
+                    {' '}({trees.length}/{profile?.plan_tier === 'dao' ? '∞' : '2'} gia phả)
+                </p>
+            </div>
+
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">Các gia phả của bạn</h2>
                 <Button onClick={handleCreateTree}>
                     <Plus className="mr-2 h-4 w-4" /> Tạo Gia Phả Mới
                 </Button>
@@ -106,7 +108,7 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {trees.map((tree) => (
-                    <div key={tree.id} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div key={tree.id} className="border rounded-lg p-6 hover:shadow-lg transition-all hover:border-primary bg-white">
                         <h3 className="text-xl font-semibold mb-2">{tree.name}</h3>
                         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                             {tree.description || 'Chưa có mô tả'}
@@ -123,9 +125,11 @@ export default function DashboardPage() {
                 ))}
 
                 {trees.length === 0 && (
-                    <div className="col-span-full text-center py-12 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground mb-4">Bạn chưa có gia phả nào.</p>
-                        <Button onClick={handleCreateTree} variant="secondary">
+                    <div className="col-span-full text-center py-16 border-2 border-dashed rounded-lg bg-white">
+                        <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-muted-foreground mb-4 text-lg">Bạn chưa có gia phả nào.</p>
+                        <Button onClick={handleCreateTree} size="lg">
+                            <Plus className="mr-2 h-5 w-5" />
                             Bắt đầu tạo ngay
                         </Button>
                     </div>
