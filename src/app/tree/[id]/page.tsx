@@ -24,6 +24,8 @@ import {
     ChevronRight
 } from 'lucide-react'
 import Link from 'next/link'
+import { toPng } from 'html-to-image'
+import { jsPDF } from 'jspdf'
 
 interface SelectedState {
     mode: 'view' | 'create' | 'edit'
@@ -66,8 +68,42 @@ function TreeBuilderContent({
 
     const handleFitView = () => {
         if (reactFlowInstance) {
-            reactFlowInstance.fitView({ padding: 0.2 })
+            reactFlowInstance.fitView({ padding: 0.2, duration: 800 })
             setZoom(Math.round(reactFlowInstance.getZoom() * 100))
+        }
+    }
+
+    const handleExportPDF = async () => {
+        const element = document.querySelector('.react-flow') as HTMLElement
+        if (!element) return
+
+        try {
+            // Hiển thị thông báo đang xử lý
+            const originalTitle = tree?.name || 'Gia Phả'
+
+            // Tạm thời ẩn các UI controls nếu cần (ReactFlow đã tự handle một số phần)
+            const dataUrl = await toPng(element, {
+                backgroundColor: '#f8f6f6',
+                quality: 1,
+                pixelRatio: 2, // Tăng chất lượng ảnh
+                filter: (node) => {
+                    // Loại bỏ các nút điều khiển của ReactFlow khỏi ảnh chụp
+                    return !node.classList?.contains('react-flow__controls') &&
+                        !node.classList?.contains('react-flow__panel')
+                }
+            })
+
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                format: [element.offsetWidth, element.offsetHeight]
+            })
+
+            pdf.addImage(dataUrl, 'PNG', 0, 0, element.offsetWidth, element.offsetHeight)
+            pdf.save(`Gia_Pha_${originalTitle.replace(/\s+/g, '_')}.pdf`)
+        } catch (error) {
+            console.error('Error exporting PDF:', error)
+            alert('Có lỗi xảy ra khi xuất PDF. Vui lòng thử lại.')
         }
     }
 
@@ -145,7 +181,10 @@ function TreeBuilderContent({
                     </div>
 
                     <div className="flex gap-2">
-                        <Button className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90">
+                        <Button
+                            onClick={handleExportPDF}
+                            className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90"
+                        >
                             <FileDown className="w-4 h-4" />
                             <span>Xuất PDF</span>
                         </Button>
