@@ -48,7 +48,30 @@ export default function TreeDetailPage() {
     }
 
     useEffect(() => {
-        if (id) loadTreeData()
+        if (!id) return
+
+        loadTreeData()
+
+        const channel = supabase
+            .channel('members-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'members',
+                    filter: `tree_id=eq.${id}`
+                },
+                (payload) => {
+                    console.log('Realtime update:', payload)
+                    loadTreeData()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [id, supabase])
 
     const handleInitRoot = async () => {
@@ -59,8 +82,9 @@ export default function TreeDetailPage() {
     }
 
     const handleSuccess = () => {
-        loadTreeData()
-        setSelectedState(null) // Close panel or stay? Let's close for now
+        // loadTreeData() // No longer needed as Realtime will catch it, but safe to keep or remove. 
+        // Let's remove detailed reload call but keep state reset
+        setSelectedState(null)
     }
 
     // Handlers for Visualizer
@@ -74,10 +98,48 @@ export default function TreeDetailPage() {
         setSelectedState({ mode: 'create', spouseId })
     }
     const handleDelete = async (memberId: string) => {
-        if (!confirm("Bạn có chắc chắn muốn xóa thành viên này?")) return
-        await supabase.from('members').delete().eq('id', memberId)
-        loadTreeData()
-        setSelectedState(null)
+        if (!confirm("Bạn có chắc chắn muốn xóa thành viên này? Hành động này không thể hoàn tác.")) return
+
+        // Check for children
+        const { count, error: countError } = await supabase
+            .from('members')
+            .select('*', { count: 'exact', head: true })
+            .eq('parent_id', memberId)
+
+        if (countError) {
+            console.error("Error checking children:", countError)
+            alert("Lỗi khi kiểm tra dữ liệu con cái.")
+            return
+        }
+
+        if (count && count > 0) {
+            alert(`Không thể xóa thành viên này vì còn ${count} người con. Vui lòng xóa hoặc chuyển các con sang cha/mẹ khác trước.`)
+            return
+        }
+
+        // Unlink as spouse from other members (set spouse_id to null)
+        const { error: unlinkError } = await supabase
+            .from('members')
+            .update({ spouse_id: null })
+            .eq('spouse_id', memberId)
+
+        if (unlinkError) {
+            console.error("Error unlinking spouse:", unlinkError)
+            alert("Lỗi khi hủy liên kết vợ/chồng.")
+            return
+        }
+
+        // Delete the member
+        const { error } = await supabase.from('members').delete().eq('id', memberId)
+
+        if (error) {
+            console.error("Delete Error:", error)
+            alert("Lỗi khi xóa: " + error.message + (error.details ? ` (${error.details})` : ""))
+        } else {
+            // Reload tree data immediately after successful deletion
+            loadTreeData()
+            setSelectedState(null)
+        }
     }
 
     if (loading) return <div className="flex h-screen items-center justify-center">Đang tải...</div>

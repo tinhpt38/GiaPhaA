@@ -84,23 +84,35 @@ export function AdvancedDateInput({
         const m = parseInt(sMonth)
         const y = parseInt(sYear)
 
-        if (d && m && y) {
-            try {
-                // lunisolar uses 0-indexed month? Check docs. Usually 1-indexed for string parsing but check.
-                // Assuming standard YYYY-MM-DD format
-                const date = lunisolar(new Date(y, m - 1, d))
-                const lunar = date.lunar
-                setLDay(lunar.day.toString())
-                setLMonth(lunar.month.toString())
-                setLYear(lunar.year.toString())
+        if (!d || !m || !y) return
 
-                notifyChange(
-                    { day: d, month: m, year: y },
-                    { day: lunar.day, month: lunar.month, year: lunar.year }
-                )
-            } catch (e) {
-                console.error("Invalid solar date", e)
+        if (y < 1900 || y > 2100) {
+            alert("Năm phải từ 1900 đến 2100 để chuyển đổi chính xác.")
+            return
+        }
+
+        try {
+            // lunisolar uses 0-indexed month for Date constructor
+            const inputDate = new Date(y, m - 1, d)
+            // Check if valid date
+            if (isNaN(inputDate.getTime())) {
+                alert("Ngày không hợp lệ")
+                return
             }
+
+            const date = lunisolar(inputDate)
+            const lunar = date.lunar
+            setLDay(lunar.day.toString())
+            setLMonth(lunar.month.toString())
+            setLYear(lunar.year.toString())
+
+            notifyChange(
+                { day: d, month: m, year: y },
+                { day: lunar.day, month: lunar.month, year: lunar.year }
+            )
+        } catch (e) {
+            console.error("Lỗi chuyển đổi ngày:", e)
+            alert("Không thể chuyển đổi ngày này")
         }
     }
 
