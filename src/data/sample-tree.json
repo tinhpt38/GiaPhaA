@@ -1,0 +1,267 @@
+{
+    "tree": {
+        "id": "sample-tree",
+        "name": "Gia phả họ Nguyễn - Mẫu tham khảo",
+        "description": "Gia phả mẫu theo hệ thống Cửu tộc (9 thế hệ) để tham khảo cách tổ chức và ghi chép gia phả"
+    },
+    "members": [
+        {
+            "id": "m1",
+            "full_name": "Nguyễn Văn Thủy",
+            "gender": "male",
+            "generation_name": "Cao Tổ",
+            "posthumous_name": "Thủy Tổ",
+            "dob_solar": "1800-01-15",
+            "dod_solar": "1880-12-20",
+            "is_alive": false,
+            "relationship": "root",
+            "spouse_id": "m2",
+            "children_ids": [
+                "m3"
+            ]
+        },
+        {
+            "id": "m2",
+            "full_name": "Trần Thị Hoa",
+            "gender": "female",
+            "generation_name": "Cao Tổ",
+            "dob_solar": "1805-03-10",
+            "dod_solar": "1885-05-15",
+            "is_alive": false,
+            "relationship": "spouse",
+            "spouse_id": "m1",
+            "children_ids": [
+                "m3"
+            ]
+        },
+        {
+            "id": "m3",
+            "full_name": "Nguyễn Văn Tằng",
+            "gender": "male",
+            "generation_name": "Tằng Tổ",
+            "dob_solar": "1825-06-20",
+            "dod_solar": "1905-08-10",
+            "is_alive": false,
+            "relationship": "child",
+            "parent_id": "m1",
+            "spouse_id": "m4",
+            "children_ids": [
+                "m5"
+            ]
+        },
+        {
+            "id": "m4",
+            "full_name": "Lê Thị Mai",
+            "gender": "female",
+            "generation_name": "Tằng Tổ",
+            "dob_solar": "1828-04-15",
+            "dod_solar": "1908-11-25",
+            "is_alive": false,
+            "relationship": "spouse",
+            "spouse_id": "m3",
+            "children_ids": [
+                "m5"
+            ]
+        },
+        {
+            "id": "m5",
+            "full_name": "Nguyễn Văn Tiên",
+            "gender": "male",
+            "generation_name": "Tổ",
+            "posthumous_name": "Tiên Tổ",
+            "dob_solar": "1850-09-12",
+            "dod_solar": "1925-03-18",
+            "is_alive": false,
+            "relationship": "child",
+            "parent_id": "m3",
+            "spouse_id": "m6",
+            "children_ids": [
+                "m7"
+            ]
+        },
+        {
+            "id": "m6",
+            "full_name": "Phạm Thị Lan",
+            "gender": "female",
+            "generation_name": "Tổ",
+            "dob_solar": "1853-07-08",
+            "dod_solar": "1928-09-22",
+            "is_alive": false,
+            "relationship": "spouse",
+            "spouse_id": "m5",
+            "children_ids": [
+                "m7"
+            ]
+        },
+        {
+            "id": "m7",
+            "full_name": "Nguyễn Văn Khảo",
+            "gender": "male",
+            "generation_name": "Khảo",
+            "posthumous_name": "Hiển Khảo",
+            "dob_solar": "1875-11-05",
+            "dod_solar": "1950-06-30",
+            "is_alive": false,
+            "relationship": "child",
+            "parent_id": "m5",
+            "spouse_id": "m8",
+            "children_ids": [
+                "m9"
+            ]
+        },
+        {
+            "id": "m8",
+            "full_name": "Hoàng Thị Tuyết",
+            "gender": "female",
+            "generation_name": "Tỷ",
+            "posthumous_name": "Hiển Tỷ",
+            "dob_solar": "1878-02-14",
+            "dod_solar": "1955-12-10",
+            "is_alive": false,
+            "relationship": "spouse",
+            "spouse_id": "m7",
+            "children_ids": [
+                "m9"
+            ]
+        },
+        {
+            "id": "m9",
+            "full_name": "Nguyễn Văn Phụ",
+            "gender": "male",
+            "generation_name": "Phụ",
+            "dob_solar": "1900-05-20",
+            "dod_solar": "1980-10-15",
+            "is_alive": false,
+            "relationship": "child",
+            "parent_id": "m7",
+            "spouse_id": "m10",
+            "children_ids": [
+                "m11",
+                "m13"
+            ]
+        },
+        {
+            "id": "m10",
+            "full_name": "Đỗ Thị Mẫu",
+            "gender": "female",
+            "generation_name": "Mẫu",
+            "dob_solar": "1905-08-12",
+            "dod_solar": "1985-04-20",
+            "is_alive": false,
+            "relationship": "spouse",
+            "spouse_id": "m9",
+            "children_ids": [
+                "m11",
+                "m13"
+            ]
+        },
+        {
+            "id": "m11",
+            "full_name": "Nguyễn Văn Kỷ",
+            "gender": "male",
+            "generation_name": "Kỷ",
+            "nickname": "Kỷ",
+            "dob_solar": "1930-03-15",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m9",
+            "spouse_id": "m12",
+            "children_ids": [
+                "m14",
+                "m15"
+            ]
+        },
+        {
+            "id": "m12",
+            "full_name": "Vũ Thị Hương",
+            "gender": "female",
+            "generation_name": "Kỷ",
+            "dob_solar": "1935-07-22",
+            "is_alive": true,
+            "relationship": "spouse",
+            "spouse_id": "m11",
+            "children_ids": [
+                "m14",
+                "m15"
+            ]
+        },
+        {
+            "id": "m13",
+            "full_name": "Nguyễn Thị Hạnh",
+            "gender": "female",
+            "generation_name": "Kỷ",
+            "dob_solar": "1932-11-08",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m9"
+        },
+        {
+            "id": "m14",
+            "full_name": "Nguyễn Văn Tử",
+            "gender": "male",
+            "generation_name": "Tử",
+            "dob_solar": "1960-04-10",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m11",
+            "children_ids": [
+                "m16",
+                "m17"
+            ]
+        },
+        {
+            "id": "m15",
+            "full_name": "Nguyễn Thị Linh",
+            "gender": "female",
+            "generation_name": "Tử",
+            "dob_solar": "1965-09-25",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m11"
+        },
+        {
+            "id": "m16",
+            "full_name": "Nguyễn Văn Tôn",
+            "gender": "male",
+            "generation_name": "Tôn",
+            "dob_solar": "1990-06-18",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m14",
+            "children_ids": [
+                "m18",
+                "m19"
+            ]
+        },
+        {
+            "id": "m17",
+            "full_name": "Nguyễn Thị Ngọc",
+            "gender": "female",
+            "generation_name": "Tôn",
+            "dob_solar": "1995-12-05",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m14"
+        },
+        {
+            "id": "m18",
+            "full_name": "Nguyễn Văn Huyền",
+            "gender": "male",
+            "generation_name": "Huyền",
+            "dob_solar": "2020-03-22",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m16"
+        },
+        {
+            "id": "m19",
+            "full_name": "Nguyễn Thị Anh",
+            "gender": "female",
+            "generation_name": "Huyền",
+            "dob_solar": "2023-08-15",
+            "is_alive": true,
+            "relationship": "child",
+            "parent_id": "m16"
+        }
+    ]
+}
