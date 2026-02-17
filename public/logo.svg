@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#FDFBF7"/>
+  
+  <!-- Tree trunk -->
+  <path d="M256 450 L256 280" stroke="#8B0000" stroke-width="24" stroke-linecap="round"/>
+  
+  <!-- Roots -->
+  <path d="M256 450 Q200 480 150 470" stroke="#8B0000" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <path d="M256 450 Q312 480 362 470" stroke="#8B0000" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <path d="M256 450 Q230 490 180 500" stroke="#8B0000" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M256 450 Q282 490 332 500" stroke="#8B0000" stroke-width="8" stroke-linecap="round" fill="none"/>
+  
+  <!-- Main canopy -->
+  <circle cx="256" cy="200" r="140" fill="#8B0000"/>
+  <circle cx="256" cy="200" r="120" fill="#A52A2A"/>
+  
+  <!-- Branches/Leaves pattern -->
+  <circle cx="180" cy="160" r="60" fill="#8B0000" opacity="0.8"/>
+  <circle cx="332" cy="160" r="60" fill="#8B0000" opacity="0.8"/>
+  <circle cx="256" cy="120" r="50" fill="#8B0000" opacity="0.9"/>
+  
+  <!-- Gold accents -->
+  <circle cx="220" cy="180" r="12" fill="#D4AF37"/>
+  <circle cx="292" cy="180" r="12" fill="#D4AF37"/>
+  <circle cx="256" cy="150" r="12" fill="#D4AF37"/>
+  <circle cx="200" cy="220" r="10" fill="#D4AF37"/>
+  <circle cx="312" cy="220" r="10" fill="#D4AF37"/>
+  <circle cx="256" cy="240" r="10" fill="#D4AF37"/>
+</svg>
