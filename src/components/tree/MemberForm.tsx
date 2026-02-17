@@ -27,10 +27,8 @@ import { createClient } from "@/utils/supabase/client"
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
 } from "@/components/ui/card"
-import { X, Check } from "lucide-react"
+import { Check } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdvancedDateInput } from "@/components/ui/advanced-date-input"
 import { cn } from "@/lib/utils"
@@ -109,6 +107,9 @@ function InputWithSuggestions({
     )
 }
 
+// [PREVIOUS IMPORTS REMAIN UNCHANGED - BUT I WILL RE-WRITE THEM FOR SAFETY or JUST TARGET THE COMPONENT]
+// Actually, I will replace the component logic.
+
 const formSchema = z.object({
     full_name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
     nickname: z.string().optional(),
@@ -117,8 +118,9 @@ const formSchema = z.object({
     gender: z.enum(["male", "female", "other"]),
     is_alive: z.boolean(),
 
-    // Generation
+    // Generation & Child Order
     generation: z.coerce.number().optional(),
+    child_order: z.coerce.number().optional(),
 
     // Legacy date strings (optional, can be derived)
     dob_solar: z.string().optional(),
@@ -149,6 +151,7 @@ const formSchema = z.object({
     marriage_date_lunar_year: z.coerce.number().optional(),
 
     // Other fields
+    spouse_id: z.string().optional().nullable(),
     spouse_name: z.string().optional(), // Fallback if no linked spouse
     image_url: z.string().optional(),
 
@@ -198,6 +201,13 @@ export function MemberForm({
         .filter(m => m.gender === 'female' && m.id !== editMember?.id)
         .map(m => ({ value: m.id, label: m.full_name }))
 
+    // Potential spouses (opposite gender? or all)
+    // Let's allow all for flexibility, or filter by opposite gender if gender is selected.
+    // For simplicity, list all except self.
+    const potentialSpouses = existingMembers
+        .filter(m => m.id !== editMember?.id)
+        .map(m => ({ value: m.id, label: m.full_name }))
+
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -205,7 +215,8 @@ export function MemberForm({
             gender: "male",
             is_alive: true,
             father_name: "",
-            mother_name: ""
+            mother_name: "",
+            spouse_id: null,
         },
     })
 
@@ -216,10 +227,12 @@ export function MemberForm({
                 nickname: editMember.nickname || "",
                 title: editMember.title || "",
                 posthumous_name: editMember.posthumous_name || "",
-                gender: editMember.gender,
+                gender: (editMember.gender || "male").toLowerCase(),
                 is_alive: editMember.is_alive ?? true,
                 generation: editMember.generation,
+                child_order: editMember.child_order,
                 image_url: editMember.image_url || "",
+                spouse_id: editMember.spouse_id || null,
                 spouse_name: editMember.spouse_name || "",
 
                 // Legacy
@@ -261,13 +274,44 @@ export function MemberForm({
                 info: editMember.info ? (typeof editMember.info === 'object' ? JSON.stringify(editMember.info) : String(editMember.info)) : "",
             })
         } else {
+            // Create Mode
+            let defaultGen = 1
+            let defaultChildOrder = 1
+            let fatherName = ""
+            let motherName = ""
+
+            if (parentId) {
+                const parent = existingMembers.find(m => m.id === parentId)
+                if (parent) {
+                    defaultGen = (parent.generation || 0) + 1
+
+                    if (parent.gender === 'male') fatherName = parent.full_name
+                    else if (parent.gender === 'female') motherName = parent.full_name
+
+                    // Calculate next child order
+                    const siblings = existingMembers.filter(m => m.parent_id === parentId)
+                    defaultChildOrder = siblings.length + 1
+                }
+            } else if (spouseId) {
+                const spouse = existingMembers.find(m => m.id === spouseId)
+                if (spouse) {
+                    defaultGen = spouse.generation || 1
+                    // Child order doesn't apply to spouse usually, but can be 1
+                }
+            }
+
             form.reset({
                 full_name: "",
                 gender: "male",
                 is_alive: true,
+                spouse_id: spouseId || null,
+                generation: defaultGen,
+                child_order: defaultChildOrder,
+                father_name: fatherName,
+                mother_name: motherName,
             })
         }
-    }, [mode, editMember, form])
+    }, [mode, editMember, form, spouseId, parentId, existingMembers]) // Added deps
 
     async function onSubmit(values: FormValues) {
         console.log("Submitting form with values:", values)
@@ -288,6 +332,8 @@ export function MemberForm({
         dateFields.forEach(field => {
             if (!payload[field] && payload[field] !== 0) payload[field] = null
         })
+
+        if (!payload.spouse_id || payload.spouse_id === "null") payload.spouse_id = null
 
         // Infer is_alive logic: if ANY death date component is present (solar or lunar), user is deceased (is_alive = false)
         const isDeceased = Boolean(
@@ -311,6 +357,7 @@ export function MemberForm({
         }
 
         let error = null
+        let successResult = null
 
         try {
             if (mode === 'edit' && editMember) {
@@ -319,20 +366,33 @@ export function MemberForm({
                     .update(payload)
                     .eq('id', editMember.id)
                 error = err
+
+                // Reciprocal spouse update
+                if (!error && payload.spouse_id) {
+                    await supabase.from('members').update({ spouse_id: editMember.id }).eq('id', payload.spouse_id)
+                }
             } else {
                 payload.tree_id = treeId
                 if (parentId) {
                     payload.parent_id = parentId
                     payload.relationship = 'child'
-                } else if (spouseId) {
-                    payload.spouse_id = spouseId
+                } else if (spouseId) { // This is redundant if spouse_id is in payload, but keep purely for relationship type if needed
+                    // If created via "Add Spouse", ensure payload.spouse_id is set (it is by defaultValues)
                     payload.relationship = 'spouse'
                 }
 
-                const { error: err } = await supabase
+                const { data, error: err } = await supabase
                     .from('members')
                     .insert(payload)
+                    .select()
+                    .single()
                 error = err
+                successResult = data
+
+                // Reciprocal spouse update
+                if (!error && data && payload.spouse_id) {
+                    await supabase.from('members').update({ spouse_id: data.id }).eq('id', payload.spouse_id)
+                }
             }
         } catch (e: any) {
             console.error("Javascript Error in onSubmit:", e)
@@ -349,20 +409,8 @@ export function MemberForm({
         }
     }
 
-    const title = mode === 'edit'
-        ? `Sửa: ${editMember?.full_name}`
-        : (parentId ? "Thêm người con" : (spouseId ? "Thêm Vợ/Chồng" : "Thêm thành viên"))
-
     return (
         <Card className="h-full border-0 md:border shadow-none flex flex-col bg-white rounded-none md:rounded-xl">
-            <CardHeader className="flex flex-row items-center justify-between py-3 md:py-4 px-4 md:px-6 shrink-0 border-b">
-                <div className="space-y-1">
-                    <CardTitle className="text-lg md:text-xl">{title}</CardTitle>
-                </div>
-                <Button variant="ghost" size="icon" onClick={onCancel} className="h-8 w-8">
-                    <X className="h-4 w-4 md:h-5 md:w-5" />
-                </Button>
-            </CardHeader>
             <CardContent className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
@@ -402,7 +450,7 @@ export function MemberForm({
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="text-xs md:text-sm font-bold">Giới tính</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger className="bg-white h-10">
                                                             <SelectValue placeholder="Chọn" />
@@ -417,18 +465,32 @@ export function MemberForm({
                                             </FormItem>
                                         )}
                                     />
-                                    <FormField
-                                        control={form.control}
-                                        name="generation"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-xs md:text-sm font-bold">Đời thứ</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" className="bg-white h-10" {...field} value={field.value as number ?? ''} />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <FormField
+                                            control={form.control}
+                                            name="child_order"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs md:text-sm font-bold">Con thứ</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="number" className="bg-white h-10" {...field} value={field.value as number ?? ''} placeholder="Ví dụ: 1 (Trưởng nam)" />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="generation"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs md:text-sm font-bold">Đời thứ</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="number" className="bg-white h-10" {...field} value={field.value as number ?? ''} />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4">
@@ -537,12 +599,42 @@ export function MemberForm({
                                     </FormItem>
                                 )} />
 
-                                <FormField control={form.control} name="spouse_name" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs md:text-sm font-bold">Tên Phối ngẫu</FormLabel>
-                                        <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
-                                    </FormItem>
-                                )} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                    <FormField control={form.control} name="spouse_id" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs md:text-sm font-bold">Vợ/Chồng của ai</FormLabel>
+                                            <Select
+                                                onValueChange={(val) => {
+                                                    field.onChange(val)
+                                                    // Update name automatically
+                                                    const spouse = existingMembers.find(m => m.id === val)
+                                                    if (spouse) {
+                                                        form.setValue('spouse_name', spouse.full_name)
+                                                    }
+                                                }}
+                                                value={field.value || undefined}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="bg-white h-10">
+                                                        <SelectValue placeholder="Chọn người hôn phối" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {potentialSpouses.map(m => (
+                                                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormItem>
+                                    )} />
+
+                                    <FormField control={form.control} name="spouse_name" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs md:text-sm font-bold">Tên Phối ngẫu (Hiển thị)</FormLabel>
+                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                        </FormItem>
+                                    )} />
+                                </div>
 
                                 <AdvancedDateInput
                                     label="Ngày Kết Hôn"
@@ -610,7 +702,7 @@ export function MemberForm({
                             </TabsContent>
                         </Tabs>
 
-                        <div className="pt-4 sticky bottom-0 bg-slate-50/50 backdrop-blur pb-2 border-t mt-4 z-10">
+                        <div className="pt-4 border-t mt-6">
                             <Button type="submit" disabled={loading} className="w-full h-11 text-base shadow-lg shadow-primary/20">
                                 {loading ? "Đang lưu..." : "Lưu thông tin"}
                             </Button>

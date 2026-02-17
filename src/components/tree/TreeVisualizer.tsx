@@ -20,11 +20,13 @@ import { hierarchy, tree, HierarchyPointNode } from 'd3-hierarchy'
 import MemberNode from './MemberNode'
 
 // Constants
-const NODE_WIDTH = 200
-const NODE_HEIGHT = 100
-const SPOUSE_SPACING = 50 // Gap between spouses
-const LEVEL_SPACING = 200 // Vertical gap between generations
-const NODE_SPACING = 50 // Horizontal gap between siblings
+const NODE_WIDTH = 240 // Increased node width
+const NODE_HEIGHT = 120
+const SPOUSE_SPACING = 60 // Gap between spouses
+const LEVEL_SPACING = 200 // Reduced vertical spacing (120 height + 80 gap)
+const SIBLING_SPACING = 80 // Horizontal gap between siblings
+const COUSIN_SPACING = 150 // Horizontal gap between cousins (subtrees)
+const COUPLE_WIDTH = NODE_WIDTH * 2 + SPOUSE_SPACING
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
     if (nodes.length === 0) return { nodes, edges }
@@ -34,7 +36,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
 
     // 2. Identify relationships
     const childrenMap = new Map<string, string[]>()
-    const spouseMap = new Map<string, string>()
+    const spouseMap = new Map<string, string[]>() // Supports multiple spouses
     const hasParent = new Set<string>()
 
     edges.forEach(edge => {
@@ -48,10 +50,13 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
             hasParent.add(childId)
         }
         // Spouse: ID starts with 's'
-        else if (edge.id.startsWith('s')) {
-            // Bi-directional mapping for easy lookup
-            spouseMap.set(edge.source, edge.target)
-            spouseMap.set(edge.target, edge.source)
+        else if (edge.id.startsWith('s')) { // Spouse
+            if (!spouseMap.has(edge.source)) spouseMap.set(edge.source, [])
+            if (!spouseMap.has(edge.target)) spouseMap.set(edge.target, [])
+
+            // Add unique references
+            if (!spouseMap.get(edge.source)?.includes(edge.target)) spouseMap.get(edge.source)?.push(edge.target)
+            if (!spouseMap.get(edge.target)?.includes(edge.source)) spouseMap.get(edge.target)?.push(edge.source)
         }
     })
 
@@ -70,54 +75,51 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
     // Let's use the one with lower ID or 'isRoot' flag as anchor.
 
     const trueRoots = roots.filter(n => {
-        const spouseId = spouseMap.get(n.id)
-        if (spouseId) {
-            // If spouse is also a root (no parent), pick the one that is 'isRoot' or smaller ID
-            if (!hasParent.has(spouseId)) {
-                const spouse = nodeMap.get(spouseId)
-                // Prefer explicit root
-                if (n.data.isRoot) return true
-                if (spouse?.data.isRoot) return false
-                return n.id < spouseId
+        // Simple heuristic: If you have a spouse who has a parent, you are not the root (you married in)
+        const spouses = spouseMap.get(n.id) || []
+        for (const spouseId of spouses) {
+            if (hasParent.has(spouseId) && !hasParent.has(n.id)) {
+                return false // Spouse is bloodline, I am not
             }
-            // If spouse HAS a parent, then THIS node (n) is the outsider marrying in.
-            // We usually attache n to spouse. So n is NOT a layout root.
-            return false
+        }
+        // If both/all are roots, strict tie-break by ID to avoid dual roots
+        // Only keep the smallest ID as the representative Root for layout
+        if (spouses.length > 0) {
+            const allInGroup = [n.id, ...spouses]
+            // If any in group is visited processed as part of another tree? (Not yet)
+            // Just check if I am the "Min ID" among the root-level cluster
+            const minId = allInGroup.reduce((min, cur) => cur < min ? cur : min, n.id)
+            if (n.id !== minId) return false
         }
         return true
-    })
+    }).sort((a, b) => a.id.localeCompare(b.id))
 
     // 4. Build Hierarchy for D3
-    // We create "Virtual Nodes" that represents a Unit (Single or Couple)
     type D3Node = {
         id: string
-        members: string[] // [MainID] or [MainID, SpouseID]
+        members: string[] // [MainID, ...Spouses]
         children: D3Node[]
         w: number
     }
 
     const buildTree = (rootId: string): D3Node => {
         visited.add(rootId)
-        const spouseId = spouseMap.get(rootId)
 
         let members = [rootId]
-        let width = NODE_WIDTH
 
-        // If has spouse and spouse not visited (or attached to this node as primary)
-        // We ensure we don't process the spouse separately
-        if (spouseId && !visited.has(spouseId)) {
-            visited.add(spouseId)
-            // Check who is "primary" for layout?
-            // Usually we keep the bloodline straight. childrenMap depends on who is the 'source' in edges.
-            // Our edges are parent->child.
-            // If A -> Child, and A is married to B.
-            // We treat (A,B) as a unit.
-            members.push(spouseId)
-            width = (NODE_WIDTH * 2) + SPOUSE_SPACING
-        }
+        // Find Spouses
+        const spouses = spouseMap.get(rootId) || []
+        spouses.forEach(sId => {
+            if (!visited.has(sId)) {
+                visited.add(sId)
+                members.push(sId)
+            }
+        })
 
-        // Gather children
-        // Children can belong to either member of the couple
+        // Calculate total width based on number of members
+        const width = members.length * NODE_WIDTH + (members.length - 1) * SPOUSE_SPACING
+
+        // Gather children from ALL members (Main + Spouses)
         const childrenIds = new Set<string>()
         members.forEach(mId => {
             const kids = childrenMap.get(mId)
@@ -125,7 +127,41 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
         })
 
         const childrenObj: D3Node[] = Array.from(childrenIds)
-            .filter(kidId => !visited.has(kidId)) // Avoid cycles
+            .sort((aId, bId) => {
+                const nodeA = nodeMap.get(aId)
+                const nodeB = nodeMap.get(bId)
+                if (!nodeA || !nodeB) return 0
+
+                // 1. Sort by Child Order
+                const orderA = nodeA.data.child_order as number | undefined
+                const orderB = nodeB.data.child_order as number | undefined
+
+                // Both have order -> compare
+                if (orderA !== undefined && orderA !== null && orderB !== undefined && orderB !== null) {
+                    return orderA - orderB
+                }
+                // Only A has order -> A comes first
+                if (orderA !== undefined && orderA !== null) return -1
+                // Only B has order -> B comes first
+                if (orderB !== undefined && orderB !== null) return 1
+
+                // 2. Sort by Date of Birth
+                const dobA = nodeA.data.dob_solar as string | undefined
+                const dobB = nodeB.data.dob_solar as string | undefined
+
+                if (dobA && dobB) {
+                    return dobA.localeCompare(dobB)
+                }
+                // If A has date, it likely comes before unknown? Or treat unknown as last?
+                // Usually treating specific as "known" is better. Let's put known dates first?
+                // Actually, if date is missing, we don't know order. Let's stick to valid comparisons.
+                if (dobA) return -1
+                if (dobB) return 1
+
+                // 3. Fallback to Name or ID
+                return aId.localeCompare(bId)
+            })
+            .filter(kidId => !visited.has(kidId))
             .map(kidId => buildTree(kidId))
 
         return {
@@ -150,81 +186,121 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
         const d3Hierarchy = hierarchy(d3Data)
 
         // Configure Tree Layout
+        // Use nodeSize with 1 unit width to allow 'separation' to return pixel values directly
         const treeLayout = tree<D3Node>()
-            .nodeSize([NODE_WIDTH + NODE_SPACING, LEVEL_SPACING])
+            .nodeSize([1, LEVEL_SPACING])
             .separation((a: HierarchyPointNode<D3Node>, b: HierarchyPointNode<D3Node>) => {
-                // Determine width of nodes to calculate separation
-                // Standard separation is 1.
-                // We need to account for the width of the 'couples'
-                const aWidth = a.data.members.length > 1 ? 2.2 : 1.2
-                const bWidth = b.data.members.length > 1 ? 2.2 : 1.2
-                return (aWidth + bWidth) / 2
-                // return a.parent === b.parent ? 1.5 : 2
+                const wA = a.data.w
+                const wB = b.data.w
+
+                // Add gap: Sibling gap or Cousin gap
+                const gap = a.parent === b.parent ? SIBLING_SPACING : COUSIN_SPACING
+
+                // Return total distance needed between centers
+                return (wA / 2) + (wB / 2) + gap
             })
 
         const rootD3 = treeLayout(d3Hierarchy)
 
+        // Calculate tree bounds to shift it correctly
+        let minX = Infinity
+        let maxX = -Infinity
+        rootD3.each(d => {
+            if (d.x < minX) minX = d.x
+            if (d.x > maxX) maxX = d.x
+        })
+
+        // If single node, minX can be Infinity if not handled? No, rootD3 always has nodes.
+        if (minX === Infinity) minX = 0
+        if (maxX === -Infinity) maxX = 0
+
         // Extract Layout positions
         rootD3.each((d) => {
             const { x, y } = d
+            // Shift x so the tree starts at 0 (relative) + current global offset
+            const shiftX = x - minX + currentXOffset
+
             const members = d.data.members
+            const mainNode = nodeMap.get(members[0])
 
-            // Center the "Unit" at (x, y)
-            // If Unit has 2 members:
-            //   Left Member: x - (NODE_WIDTH + SPOUSE_SPACING)/2 + offset...
-            //   Wait, D3 x is the Center of the node.
+            // Position Main Node (Centered)
+            if (mainNode) {
+                mainNode.position = { x: shiftX, y: y }
+            }
 
-            if (members.length === 1) {
-                const node = nodeMap.get(members[0])
-                if (node) {
-                    node.position = {
-                        x: x + currentXOffset,
-                        y: y
-                    }
-                }
-            } else if (members.length === 2) {
-                // Couple
-                const m1 = nodeMap.get(members[0]) // Primary (Root/Bloodline)
-                const m2 = nodeMap.get(members[1]) // Spouse
+            // Position Spouses (Alternating Left/Right)
+            // i=1 (Spouse 1) -> Right 1
+            // i=2 (Spouse 2) -> Left 1
+            // i=3 (Spouse 3) -> Right 2
+            for (let i = 1; i < members.length; i++) {
+                const spouseNode = nodeMap.get(members[i])
+                if (spouseNode) {
+                    const isRight = i % 2 !== 0 // 1, 3, 5 -> Right
+                    const pairIndex = Math.ceil(i / 2) // 1,2->1; 3,4->2
 
-                // Position: M1 at Left, M2 at Right? Or centered?
-                // Let's place them continuously.
-                // Center of the couple is x.
-                // Total width = 2*W + Gap.
-                // Start X = x - (2*W + Gap)/2
-                // M1 X = Start X + W/2
-                // M2 X = Start X + W + Gap + W/2
+                    const offset = (NODE_WIDTH + SPOUSE_SPACING) * pairIndex
+                    // If Right: +offset. If Left: -offset.
 
-                const totalWidth = (NODE_WIDTH * 2) + SPOUSE_SPACING
-                const startX = x - (totalWidth / 2)
-
-                if (m1) {
-                    // Start from startX logic
-                    // Unit starts at x - totalWidth/2
-                    // ReactFlow node position is top-left
-                    // So m1 is simply at startX
-                    m1.position = {
-                        x: startX + currentXOffset,
-                        y: y
-                    }
-                }
-
-                if (m2) {
-                    m2.position = {
-                        x: startX + NODE_WIDTH + SPOUSE_SPACING + currentXOffset,
+                    spouseNode.position = {
+                        x: shiftX + (isRight ? offset : -offset),
                         y: y
                     }
                 }
             }
+
+            // Post-process layout to apply saved manual coordinates if they exist
+            // We want to override the D3 layout if the user has manually set a position
+            const applyManualPosition = (node: Node) => {
+                if (node && typeof node.data.coordinate_x === 'number' && typeof node.data.coordinate_y === 'number') {
+                    // Only apply if values are valid numbers
+                    // Cast to number just in case
+                    const x = Number(node.data.coordinate_x)
+                    const y = Number(node.data.coordinate_y)
+                    if (!isNaN(x) && !isNaN(y)) {
+                        node.position = { x, y }
+                    }
+                }
+            }
+
+            if (mainNode) applyManualPosition(mainNode)
+            for (let i = 1; i < members.length; i++) {
+                const spouseNode = nodeMap.get(members[i])
+                if (spouseNode) applyManualPosition(spouseNode)
+            }
         })
 
-        // Shift next component
-        // Find max x in this tree to update currentXOffset
-        let maxX = -Infinity
-        rootD3.each(d => {
-            if (d.x > maxX) maxX = d.x
-        })
-        currentXOffset += maxX + 500 // Arbitrary gap between trees
+        // Update global offset for the next tree
+        // Width of this tree is (maxX - minX)
+        // Add padding for next tree
+        currentXOffset += (maxX - minX) + COUSIN_SPACING + NODE_WIDTH // Extra safety buffer
+    })
+
+    // 5. Update Edge Handles & Direction based on final positions
+    edges.forEach(edge => {
+        if (edge.id.startsWith('s')) {
+            const nodeA = nodeMap.get(edge.source) // Original Source
+            const nodeB = nodeMap.get(edge.target) // Original Target
+
+            if (nodeA && nodeB && nodeA.position && nodeB.position) {
+                // We enforce Left -> Right flow because:
+                // Node's LEFT handle is Type=Target (Input)
+                // Node's RIGHT handle is Type=Source (Output)
+                // So Edge MUST go from Left Node (Right Handle) -> Right Node (Left Handle)
+
+                if (nodeA.position.x <= nodeB.position.x) {
+                    // A is Left, B is Right. Flow is correct.
+                    edge.sourceHandle = 'right'
+                    edge.targetHandle = 'left'
+                } else {
+                    // A is Right, B is Left. Flow is reversed.
+                    // SWAP Source and Target
+                    edge.source = nodeB.id
+                    edge.target = nodeA.id
+                    edge.sourceHandle = 'right'
+                    edge.targetHandle = 'left'
+                }
+            }
+        }
     })
 
     return { nodes, edges }
@@ -237,6 +313,7 @@ interface TreeVisualizerProps {
     onAddSpouse?: (spouseId: string) => void
     onEdit?: (member: any) => void
     onDelete?: (memberId: string) => void
+    onNodeDragStop?: (memberId: string, position: { x: number, y: number }) => void
 }
 
 export default function TreeVisualizer({
@@ -245,11 +322,18 @@ export default function TreeVisualizer({
     onAddChild,
     onAddSpouse,
     onEdit,
-    onDelete
+    onDelete,
+    onNodeDragStop
 }: TreeVisualizerProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
     const { fitView } = useReactFlow()
+
+    const handleNodeDragStop = useCallback((event: React.MouseEvent, node: Node) => {
+        if (onNodeDragStop) {
+            onNodeDragStop(node.id, node.position)
+        }
+    }, [onNodeDragStop])
 
     // Convert DB members to React Flow Nodes & Edges
     useEffect(() => {
@@ -259,6 +343,12 @@ export default function TreeVisualizer({
             id: m.id,
             type: 'member',
             data: {
+                // Pass coordinates to data for layout access
+                coordinate_x: m.coordinate_x,
+                coordinate_y: m.coordinate_y,
+                child_order: m.child_order,
+                dob_solar: m.dob_solar,
+
                 name: m.full_name,
                 gender: m.gender,
                 isRoot: m.relationship === 'root',
@@ -273,7 +363,10 @@ export default function TreeVisualizer({
                 onAddSpouse: () => onAddSpouse && onAddSpouse(m.id),
                 onDelete: () => onDelete && onDelete(m.id)
             },
-            position: { x: 0, y: 0 },
+            position: {
+                x: (typeof m.coordinate_x === 'number' ? m.coordinate_x : 0),
+                y: (typeof m.coordinate_y === 'number' ? m.coordinate_y : 0)
+            },
             draggable: true // Enable dragging initially
         }))
 
@@ -297,24 +390,27 @@ export default function TreeVisualizer({
 
             // Spouse Edge
             if (m.spouse_id) {
-                const smallId = m.id < m.spouse_id ? m.id : m.spouse_id
-                const largeId = m.id < m.spouse_id ? m.spouse_id : m.id
-                const pairId = `${smallId}-${largeId}`
+                // Ensure unique processing for the pair
+                const id1 = m.id < m.spouse_id ? m.id : m.spouse_id
+                const id2 = m.id < m.spouse_id ? m.spouse_id : m.id
+                const pairId = `${id1}-${id2}`
 
                 if (!processedSpousePairs.has(pairId)) {
                     processedSpousePairs.add(pairId)
 
+                    // Direction handles will be fixed by layout
                     flowEdges.push({
-                        id: `s${smallId}-${largeId}`,
-                        source: smallId,      // Node on the left (convention)
-                        target: largeId,      // Node on the right
+                        id: `s${id1}-${id2}`,
+                        source: id1,
+                        target: id2,
                         type: 'straight',
                         animated: false,
                         style: { stroke: '#ec4899', strokeDasharray: '5,5', strokeWidth: 1.5 },
                         label: '❤️',
                         labelStyle: { fill: '#ec4899', fontWeight: 700, fontSize: 12 },
-                        sourceHandle: 'right', // Connect from Right handle of the source (left node)
-                        targetHandle: 'left'   // To Left handle of the target (right node)
+                        labelShowBg: false, // Hide white background behind emoji
+                        sourceHandle: 'right', // Default
+                        targetHandle: 'left'   // Default
                     })
                 }
             }
@@ -357,6 +453,7 @@ export default function TreeVisualizer({
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onReconnect={onReconnect}
+                onNodeDragStop={handleNodeDragStop}
                 nodeTypes={nodeTypes}
                 onNodeClick={handleNodeClick}
                 fitView

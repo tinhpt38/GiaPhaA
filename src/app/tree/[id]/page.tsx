@@ -21,11 +21,14 @@ import {
     X,
     Users as UsersIcon,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Settings,
+    Trash2
 } from 'lucide-react'
 import Link from 'next/link'
 import { toPng } from 'html-to-image'
 import { jsPDF } from 'jspdf'
+import { useRouter } from 'next/navigation' // Add this import
 
 interface SelectedState {
     mode: 'view' | 'create' | 'edit'
@@ -45,9 +48,11 @@ function TreeBuilderContent({
     handleAddChild,
     handleAddSpouse,
     handleDelete,
+    handleDeleteTree,
+    handleNodeDragStop, // Add this prop
     zoom,
     setZoom,
-    loadTreeData // Add this prop
+    loadTreeData
 }: any) {
     const reactFlowInstance = useReactFlow()
     const [showMemberList, setShowMemberList] = useState(false)
@@ -108,6 +113,23 @@ function TreeBuilderContent({
         }
     }
 
+    const handleResetLayout = async () => {
+        if (!confirm("Bạn có chắc chắn muốn đặt lại toàn bộ vị trí? Các chỉnh sửa vị trí thủ công sẽ bị mất.")) return
+
+        const supabase = createClient()
+        const { error } = await supabase
+            .from('members')
+            .update({ coordinate_x: null, coordinate_y: null })
+            .eq('tree_id', id)
+
+        if (error) {
+            alert("Lỗi khi đặt lại vị trí: " + error.message)
+        } else {
+            loadTreeData()
+            setTimeout(handleFitView, 500) // Fit view after reload
+        }
+    }
+
     const filteredMembers = members.filter((m: any) =>
         m.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -144,17 +166,10 @@ function TreeBuilderContent({
                     <div className="hidden md:flex items-center bg-white border border-[#e5e1e1] rounded-lg p-1">
                         <button
                             className="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"
-                            title="Hoàn tác"
-                            onClick={() => {/* TODO: Implement undo */ }}
+                            title="Đặt lại vị trí (Auto Layout)"
+                            onClick={handleResetLayout}
                         >
                             <Undo2 className="w-5 h-5" />
-                        </button>
-                        <button
-                            className="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"
-                            title="Làm lại"
-                            onClick={() => {/* TODO: Implement redo */ }}
-                        >
-                            <Redo2 className="w-5 h-5" />
                         </button>
                         <div className="w-[1px] h-6 bg-[#e5e1e1] mx-1" />
                         <button
@@ -194,6 +209,16 @@ function TreeBuilderContent({
                         <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2 bg-[#f3e7e7] text-[#1b0d0d] border-[#e5e1e1] h-8 md:h-9">
                             <Share2 className="w-4 h-4" />
                             <span className="hidden md:inline">Chia sẻ</span>
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleDeleteTree}
+                            className="flex items-center gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 h-8 md:h-9"
+                            title="Xóa Gia Phả"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="hidden md:inline">Xóa</span>
                         </Button>
                     </div>
                 </div>
@@ -263,6 +288,7 @@ function TreeBuilderContent({
                                 onAddSpouse={handleAddSpouse}
                                 onEdit={handleNodeClick}
                                 onDelete={handleDelete}
+                                onNodeDragStop={handleNodeDragStop}
                             />
                         </div>
                     )}
@@ -281,76 +307,16 @@ function TreeBuilderContent({
                     )}
                 </main>
 
-                {/* Member List Sidebar (Toggle) */}
-                {showMemberList && (
-                    <aside className="fixed inset-0 md:relative md:inset-auto md:w-80 bg-white md:border-l border-[#e5e1e1] flex flex-col z-50 md:z-30 shadow-2xl md:shadow-xl">
-                        <div className="p-4 border-b border-[#e5e1e1] flex justify-between items-center bg-[#fcf8f8]">
-                            <h3 className="font-bold text-[#1b0d0d]">
-                                Danh sách ({filteredMembers.length})
-                            </h3>
-                            <button
-                                onClick={() => setShowMemberList(false)}
-                                className="size-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#9a4c4c] hover:text-[#1b0d0d] transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="p-4 border-b border-[#e5e1e1]">
-                            <div className="flex items-center bg-[#f3e7e7] rounded-lg px-3 py-2 gap-2">
-                                <Search className="text-[#9a4c4c] w-4 h-4" />
-                                <input
-                                    className="bg-transparent border-none focus:ring-0 p-0 text-sm w-full placeholder:text-[#9a4c4c]"
-                                    placeholder="Tìm kiếm..."
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-4">
-                            <div className="space-y-1">
-                                {filteredMembers.map((member: any) => (
-                                    <div
-                                        key={member.id}
-                                        onClick={() => {
-                                            handleNodeClick(member)
-                                            setShowMemberList(false)
-                                        }}
-                                        className={`flex items-center gap-3 p-3 hover:bg-[#f3e7e7] rounded-lg cursor-pointer transition-colors ${selectedState?.member?.id === member.id
-                                            ? 'border-l-4 border-primary bg-[#f3e7e7]/50'
-                                            : 'border-l-4 border-transparent'
-                                            }`}
-                                    >
-                                        <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                                            {member.full_name?.charAt(0).toUpperCase() || '?'}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold truncate">{member.full_name || 'Chưa đặt tên'}</p>
-                                            <p className="text-xs text-[#9a4c4c] truncate">
-                                                {member.info?.generation_name || 'Chưa xác định'} - Đời {member.generation || '?'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {filteredMembers.length === 0 && (
-                                    <div className="text-center py-12 text-sm text-gray-400">
-                                        {searchQuery ? 'Không tìm thấy thành viên' : 'Chưa có thành viên'}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </aside>
-                )}
             </div>
         </>
     )
 }
 
+
+
 export default function TreeDetailPage() {
     const params = useParams()
+    const router = useRouter() // Use router
     const id = params.id as string
     const [tree, setTree] = useState<any>(null)
     const [members, setMembers] = useState<any[]>([])
@@ -416,6 +382,44 @@ export default function TreeDetailPage() {
         setSelectedState({ mode: 'create', spouseId })
     }
 
+    const handleNodeDragStop = async (memberId: string, position: { x: number, y: number }) => {
+        const { error } = await supabase
+            .from('members')
+            .update({
+                coordinate_x: position.x,
+                coordinate_y: position.y
+            })
+            .eq('id', memberId)
+
+        if (error) {
+            console.error("Error saving position:", error)
+        }
+    }
+
+    const handleDeleteTree = async () => {
+        if (!confirm("CẢNH BÁO: Bạn có chắc chắn muốn xóa toàn bộ Gia Phả này? Hành động này KHÔNG THỂ khôi phục.")) return
+        if (!confirm("Xác nhận lần cuối: Mọi dữ liệu về thành viên và gia phả sẽ bị xóa vĩnh viễn. Bạn có chắc không?")) return
+
+        try {
+            // Delete trees (members should cascade delete if foreign key is set up correctly, 
+            // but if not, we might need to delete members first? 
+            // Usually Supabase handles cascade if configured. 
+            // If not, we should delete members first. Assuming cascade for now or manual cleanup)
+
+            // Safe approach: delete members first manually if unsure about cascade
+            await supabase.from('members').delete().eq('tree_id', id)
+
+            const { error } = await supabase.from('trees').delete().eq('id', id)
+
+            if (error) throw error
+
+            router.push('/dashboard')
+        } catch (error: any) {
+            console.error(error)
+            alert("Lỗi khi xóa gia phả: " + error.message)
+        }
+    }
+
     const handleDelete = async (memberId: string) => {
         if (!confirm("Bạn có chắc chắn muốn xóa thành viên này?")) return
 
@@ -444,6 +448,8 @@ export default function TreeDetailPage() {
         }
     }
 
+    // ... (rest of loading check) ...
+
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-[#f8f6f6]">
@@ -468,6 +474,8 @@ export default function TreeDetailPage() {
                     handleAddChild={handleAddChild}
                     handleAddSpouse={handleAddSpouse}
                     handleDelete={handleDelete}
+                    handleDeleteTree={handleDeleteTree} // Pass it here
+                    handleNodeDragStop={handleNodeDragStop}
                     zoom={zoom}
                     setZoom={setZoom}
                     loadTreeData={loadTreeData}

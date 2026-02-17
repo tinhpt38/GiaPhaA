@@ -42,7 +42,7 @@ function MemberNode({ data }: { data: MemberNodeData }) {
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <div className={`
-                  px-4 py-3 rounded-xl border-2 bg-white min-w-[180px] cursor-pointer transition-all relative overflow-visible
+                  px-4 py-3 rounded-xl border-2 bg-white w-[220px] cursor-pointer transition-all relative overflow-visible
                   hover:scale-105 active:scale-95
                   ${isDeceased
                             ? 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.6)]' // Golden aura for deceased
@@ -51,7 +51,7 @@ function MemberNode({ data }: { data: MemberNodeData }) {
                   ${data.isRoot ? 'ring-2 ring-yellow-500 ring-offset-2' : ''}
                 `}>
                         <Handle type="target" position={Position.Top} id="top" className="!bg-gray-400 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <Handle type="source" position={Position.Left} id="left" className="!bg-ec4899 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Handle type="target" position={Position.Left} id="left" className="!bg-ec4899 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                         <div className="flex flex-col items-center">
                             {/* Avatar */}
