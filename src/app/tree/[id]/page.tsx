@@ -46,7 +46,8 @@ function TreeBuilderContent({
     handleAddSpouse,
     handleDelete,
     zoom,
-    setZoom
+    setZoom,
+    loadTreeData // Add this prop
 }: any) {
     const reactFlowInstance = useReactFlow()
     const [showMemberList, setShowMemberList] = useState(false)
@@ -223,7 +224,10 @@ function TreeBuilderContent({
                                 parentId={selectedState.parentId}
                                 spouseId={selectedState.spouseId}
                                 editMember={selectedState.member}
-                                onSuccess={() => setSelectedState(null)}
+                                onSuccess={() => {
+                                    loadTreeData()
+                                    setSelectedState(null)
+                                }}
                                 onCancel={() => setSelectedState(null)}
                             />
                         </div>
@@ -465,6 +469,7 @@ export default function TreeDetailPage() {
                     handleDelete={handleDelete}
                     zoom={zoom}
                     setZoom={setZoom}
+                    loadTreeData={loadTreeData}
                 />
             </ReactFlowProvider>
         </div>
