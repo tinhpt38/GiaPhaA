@@ -80,13 +80,15 @@ function TreeBuilderContent({
             {/* Top Header */}
             <header className="h-16 flex items-center justify-between border-b border-[#e5e1e1] bg-white px-6 z-30 shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="bg-primary p-1.5 rounded-lg text-white">
-                        <BookOpen className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-bold leading-none">{tree?.name || 'Gia Phả'}</h1>
-                        <p className="text-xs text-[#9a4c4c] font-medium">Chỉnh sửa cây gia phả</p>
-                    </div>
+                    <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <div className="bg-primary p-1.5 rounded-lg text-white">
+                            <BookOpen className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-bold leading-none">{tree?.name || 'Gia Phả'}</h1>
+                            <p className="text-xs text-[#9a4c4c] font-medium">Chỉnh sửa cây gia phả</p>
+                        </div>
+                    </Link>
                 </div>
 
                 <div className="flex items-center gap-4">

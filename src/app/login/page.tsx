@@ -3,9 +3,24 @@
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+
 export default function LoginPage() {
+    const supabase = createClient()
+    const router = useRouter()
+
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session) {
+                router.push('/dashboard')
+            }
+        }
+        checkUser()
+    }, [supabase, router])
+
     const handleLogin = async () => {
-        const supabase = createClient()
         await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {

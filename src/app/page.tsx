@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import {
   BookOpen,
@@ -8,8 +10,24 @@ import {
   Heart,
   FileText
 } from 'lucide-react'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
 
 export default function HomePage() {
+  const supabase = createClient()
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        router.push('/dashboard')
+      }
+    }
+    checkUser()
+  }, [supabase, router])
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-['Be_Vietnam_Pro',sans-serif]">
       {/* Header */}

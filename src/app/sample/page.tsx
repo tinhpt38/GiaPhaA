@@ -1,27 +1,42 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Users, Calendar, Heart, BookOpen } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 export default function SampleTreePublicPage() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const supabase = createClient()
+
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            setIsAuthenticated(!!session)
+        }
+        checkUser()
+    }, [supabase])
+
+    const homePath = isAuthenticated ? '/dashboard' : '/'
+
     return (
         <div className="min-h-screen bg-[#FDFBF7]">
             {/* Header */}
             <header className="sticky top-0 z-50 w-full bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#D4AF37]/20 px-6 lg:px-20 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3">
+                    <Link href={homePath} className="flex items-center gap-3">
                         <div className="p-2 bg-[#8B0000] rounded-lg text-white">
                             <BookOpen className="w-6 h-6" />
                         </div>
                         <h2 className="text-xl font-black tracking-tight text-[#8B0000]">GIA PHẢ VIỆT</h2>
                     </Link>
 
-                    <Link href="/">
+                    <Link href={homePath}>
                         <button className="flex items-center gap-2 text-sm font-semibold hover:text-primary transition-colors">
                             <ArrowLeft className="w-4 h-4" />
-                            Quay lại trang chủ
+                            Quay lại {isAuthenticated ? 'Bảng điều khiển' : 'trang chủ'}
                         </button>
                     </Link>
                 </div>
