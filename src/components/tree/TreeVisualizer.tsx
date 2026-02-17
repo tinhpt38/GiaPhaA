@@ -104,6 +104,8 @@ export default function TreeVisualizer({
         }))
 
         const flowEdges: Edge[] = []
+        const processedSpousePairs = new Set<string>()
+
         initialMembers.forEach(m => {
             // Parent-Child Edge
             if (m.parent_id) {
@@ -121,20 +123,24 @@ export default function TreeVisualizer({
 
             // Spouse Edge
             if (m.spouse_id) {
-                // Ensure we only add the edge once (e.g. from husband to wife, or smaller ID to larger ID)
-                // Here we check if the current member ID is smaller than spouse ID to avoid duplicates if bi-directional
-                if (m.id < m.spouse_id) {
+                const smallId = m.id < m.spouse_id ? m.id : m.spouse_id
+                const largeId = m.id < m.spouse_id ? m.spouse_id : m.id
+                const pairId = `${smallId}-${largeId}`
+
+                if (!processedSpousePairs.has(pairId)) {
+                    processedSpousePairs.add(pairId)
+
                     flowEdges.push({
-                        id: `s${m.id}-${m.spouse_id}`,
-                        source: m.id,
-                        target: m.spouse_id,
-                        type: 'straight', // Changed to straight for cleaner look with dagre
+                        id: `s${smallId}-${largeId}`,
+                        source: smallId,      // Node on the left (convention)
+                        target: largeId,      // Node on the right
+                        type: 'straight',
                         animated: false,
                         style: { stroke: '#ec4899', strokeDasharray: '5,5', strokeWidth: 1.5 },
                         label: '❤️',
                         labelStyle: { fill: '#ec4899', fontWeight: 700, fontSize: 12 },
-                        sourceHandle: 'right', // Connect from right side of source
-                        targetHandle: 'left'   // To left side of target
+                        sourceHandle: 'right', // Connect from Right handle of the source (left node)
+                        targetHandle: 'left'   // To Left handle of the target (right node)
                     })
                 }
             }
