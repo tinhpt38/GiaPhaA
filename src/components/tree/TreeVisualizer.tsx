@@ -101,6 +101,7 @@ export default function TreeVisualizer({
 
         const flowEdges: Edge[] = []
         initialMembers.forEach(m => {
+            // Parent-Child Edge
             if (m.parent_id) {
                 flowEdges.push({
                     id: `e${m.parent_id}-${m.id}`,
@@ -110,6 +111,24 @@ export default function TreeVisualizer({
                     animated: true,
                     style: { stroke: '#b1b1b7' }
                 })
+            }
+
+            // Spouse Edge
+            if (m.spouse_id) {
+                // Ensure we only add the edge once (e.g. from husband to wife, or smaller ID to larger ID)
+                // Here we check if the current member ID is smaller than spouse ID to avoid duplicates if bi-directional
+                if (m.id < m.spouse_id) {
+                    flowEdges.push({
+                        id: `s${m.id}-${m.spouse_id}`,
+                        source: m.id,
+                        target: m.spouse_id,
+                        type: 'straight', // Changed to straight for cleaner look with dagre
+                        animated: false,
+                        style: { stroke: '#ec4899', strokeDasharray: '5,5', strokeWidth: 1.5 },
+                        label: '❤️',
+                        labelStyle: { fill: '#ec4899', fontWeight: 700, fontSize: 12 }
+                    })
+                }
             }
         })
 
