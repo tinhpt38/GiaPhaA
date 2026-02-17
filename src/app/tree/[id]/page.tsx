@@ -224,6 +224,7 @@ function TreeBuilderContent({
                                 parentId={selectedState.parentId}
                                 spouseId={selectedState.spouseId}
                                 editMember={selectedState.member}
+                                existingMembers={members} // Pass all members for selection
                                 onSuccess={() => {
                                     loadTreeData()
                                     setSelectedState(null)

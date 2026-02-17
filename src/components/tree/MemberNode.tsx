@@ -50,7 +50,8 @@ function MemberNode({ data }: { data: MemberNodeData }) {
                         }
                   ${data.isRoot ? 'ring-2 ring-yellow-500 ring-offset-2' : ''}
                 `}>
-                        <Handle type="target" position={Position.Top} className="!bg-gray-400 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Handle type="target" position={Position.Top} id="top" className="!bg-gray-400 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Handle type="source" position={Position.Left} id="left" className="!bg-ec4899 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
 
                         <div className="flex flex-col items-center">
                             {/* Avatar */}
@@ -82,7 +83,8 @@ function MemberNode({ data }: { data: MemberNodeData }) {
                             {data.dates && <div className="text-[10px] text-gray-400 mt-1 font-mono">{data.dates}</div>}
                         </div>
 
-                        <Handle type="source" position={Position.Bottom} className="!bg-gray-400 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Handle type="source" position={Position.Right} id="right" className="!bg-ec4899 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Handle type="source" position={Position.Bottom} id="bottom" className="!bg-gray-400 !w-2 !h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                 </DropdownMenuTrigger>
 

@@ -22,7 +22,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { createClient } from "@/utils/supabase/client"
 import {
     Card,
@@ -30,9 +30,84 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { X } from "lucide-react"
+import { X, Check } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdvancedDateInput } from "@/components/ui/advanced-date-input"
+import { cn } from "@/lib/utils"
+
+// Input with Suggestions Component
+function InputWithSuggestions({
+    value,
+    onChange,
+    options,
+    placeholder
+}: {
+    value: string
+    onChange: (val: string) => void
+    options: { value: string; label: string }[]
+    placeholder?: string
+}) {
+    const [open, setOpen] = useState(false)
+    const [inputValue, setInputValue] = useState(value || "")
+    const inputRef = useRef<HTMLInputElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    // Update internal state when external value changes
+    useEffect(() => {
+        setInputValue(value || "")
+    }, [value])
+
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    const filteredOptions = options.filter(opt =>
+        opt.label.toLowerCase().includes(inputValue.toLowerCase()) &&
+        opt.label !== inputValue // Don't show if already exact match
+    ).slice(0, 5) // Limit to top 5
+
+    return (
+        <div className="relative" ref={containerRef}>
+            <Input
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => {
+                    setInputValue(e.target.value)
+                    onChange(e.target.value)
+                    setOpen(true)
+                }}
+                onFocus={() => setOpen(true)}
+                placeholder={placeholder}
+                className="bg-white h-10"
+            />
+            {open && filteredOptions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto py-1">
+                    {filteredOptions.map((option) => (
+                        <div
+                            key={option.value}
+                            className="px-3 py-2 hover:bg-slate-100 cursor-pointer text-sm flex items-center justify-between"
+                            onClick={() => {
+                                setInputValue(option.label)
+                                onChange(option.label)
+                                setOpen(false)
+                            }}
+                        >
+                            <span>{option.label}</span>
+                            {option.label === value && <Check className="w-4 h-4 text-primary" />}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
 
 const formSchema = z.object({
     full_name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
@@ -96,11 +171,10 @@ interface MemberFormProps {
     parentId?: string
     spouseId?: string
     editMember?: any
+    existingMembers?: any[] // Added prop
     onSuccess: () => void
     onCancel: () => void
 }
-
-
 
 export function MemberForm({
     mode,
@@ -108,11 +182,21 @@ export function MemberForm({
     parentId,
     spouseId,
     editMember,
+    existingMembers = [], // Default empty
     onSuccess,
     onCancel
 }: MemberFormProps) {
     const supabase = createClient()
     const [loading, setLoading] = useState(false)
+
+    // Prepare options for suggestions
+    const maleMembers = existingMembers
+        .filter(m => m.gender === 'male' && m.id !== editMember?.id)
+        .map(m => ({ value: m.id, label: m.full_name }))
+
+    const femaleMembers = existingMembers
+        .filter(m => m.gender === 'female' && m.id !== editMember?.id)
+        .map(m => ({ value: m.id, label: m.full_name }))
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -397,13 +481,27 @@ export function MemberForm({
                                     <FormField control={form.control} name="father_name" render={({ field }) => (
                                         <FormItem>
                                             <FormLabel className="text-xs md:text-sm font-bold">Con Ông</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            <FormControl>
+                                                <InputWithSuggestions
+                                                    value={field.value || ""}
+                                                    onChange={field.onChange}
+                                                    options={maleMembers}
+                                                    placeholder="Tên cha..."
+                                                />
+                                            </FormControl>
                                         </FormItem>
                                     )} />
                                     <FormField control={form.control} name="mother_name" render={({ field }) => (
                                         <FormItem>
                                             <FormLabel className="text-xs md:text-sm font-bold">Con Bà</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            <FormControl>
+                                                <InputWithSuggestions
+                                                    value={field.value || ""}
+                                                    onChange={field.onChange}
+                                                    options={femaleMembers}
+                                                    placeholder="Tên mẹ..."
+                                                />
+                                            </FormControl>
                                         </FormItem>
                                     )} />
                                 </div>

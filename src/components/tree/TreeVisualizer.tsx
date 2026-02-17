@@ -113,7 +113,9 @@ export default function TreeVisualizer({
                     target: m.id,
                     type: 'smoothstep',
                     animated: true,
-                    style: { stroke: '#b1b1b7' }
+                    style: { stroke: '#b1b1b7' },
+                    sourceHandle: 'bottom',
+                    targetHandle: 'top'
                 })
             }
 
@@ -130,7 +132,9 @@ export default function TreeVisualizer({
                         animated: false,
                         style: { stroke: '#ec4899', strokeDasharray: '5,5', strokeWidth: 1.5 },
                         label: '❤️',
-                        labelStyle: { fill: '#ec4899', fontWeight: 700, fontSize: 12 }
+                        labelStyle: { fill: '#ec4899', fontWeight: 700, fontSize: 12 },
+                        sourceHandle: 'right', // Connect from right side of source
+                        targetHandle: 'left'   // To left side of target
                     })
                 }
             }
