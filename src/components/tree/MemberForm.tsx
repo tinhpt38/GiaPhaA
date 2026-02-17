@@ -205,11 +205,13 @@ export function MemberForm({
             if (!payload[field] && payload[field] !== 0) payload[field] = null
         })
 
-        // Infer is_alive logic: if death YEAR is present (solar or lunar), user is deceased (is_alive = false)
-        // Otherwise assume alive. We require at least the year to confirm death.
-        const hasDeathYear = Boolean(payload.dod_solar_year || payload.dod_lunar_year)
+        // Infer is_alive logic: if ANY death date component is present (solar or lunar), user is deceased (is_alive = false)
+        const isDeceased = Boolean(
+            payload.dod_solar_day || payload.dod_solar_month || payload.dod_solar_year ||
+            payload.dod_lunar_day || payload.dod_lunar_month || payload.dod_lunar_year
+        )
 
-        payload.is_alive = !hasDeathYear
+        payload.is_alive = !isDeceased
 
         // Try to construct standard dates from split fields if possible for dob_solar/dod_solar
         if (payload.dob_solar_year && payload.dob_solar_month && payload.dob_solar_day) {

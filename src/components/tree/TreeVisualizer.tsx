@@ -12,6 +12,8 @@ import {
     Position,
     Node,
     useReactFlow,
+    reconnectEdge,
+    Connection
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import dagre from 'dagre'
@@ -47,6 +49,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
                 x: nodeWithPosition.x - nodeWidth / 2,
                 y: nodeWithPosition.y - nodeHeight / 2,
             },
+            draggable: true // Enable dragging
         }
     })
 
@@ -96,7 +99,8 @@ export default function TreeVisualizer({
                 onAddSpouse: () => onAddSpouse && onAddSpouse(m.id),
                 onDelete: () => onDelete && onDelete(m.id)
             },
-            position: { x: 0, y: 0 }
+            position: { x: 0, y: 0 },
+            draggable: true // Enable dragging initially
         }))
 
         const flowEdges: Edge[] = []
@@ -154,6 +158,13 @@ export default function TreeVisualizer({
         }
     }, [initialMembers, onNodeClick])
 
+    const onReconnect = useCallback(
+        (oldEdge: Edge, newConnection: Connection) => {
+            setEdges((els) => reconnectEdge(oldEdge, newConnection, els))
+        },
+        [setEdges]
+    )
+
     return (
         <div style={{ width: '100%', height: '100%' }}>
             <ReactFlow
@@ -161,6 +172,7 @@ export default function TreeVisualizer({
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onReconnect={onReconnect}
                 nodeTypes={nodeTypes}
                 onNodeClick={handleNodeClick}
                 fitView
