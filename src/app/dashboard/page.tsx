@@ -17,6 +17,17 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 interface Tree {
     id: string
@@ -35,6 +46,11 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true)
     const [profile, setProfile] = useState<Profile | null>(null)
     const [user, setUser] = useState<any>(null)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+    const [newTreeName, setNewTreeName] = useState('')
+    const [newTreeDescription, setNewTreeDescription] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const supabase = createClient()
     const router = useRouter()
 
@@ -71,15 +87,12 @@ export default function DashboardPage() {
     }, [router, supabase])
 
     const handleCreateTree = async () => {
-        // Optimistic check before server check
-        if (profile?.plan_tier === 'hieu' && trees.length >= 2) {
-            alert('Gói Hiếu chỉ được tạo tối đa 2 gia phả. Vui lòng nâng cấp gói Đạo để tạo thêm.')
+        if (!newTreeName.trim()) {
+            alert('Vui lòng nhập tên gia phả')
             return
         }
 
-        const name = prompt('Nhập tên gia phả mới:')
-        if (!name) return
-
+        setIsSubmitting(true)
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
@@ -87,17 +100,30 @@ export default function DashboardPage() {
             .from('trees')
             .insert({
                 owner_id: user.id,
-                name: name,
-                description: 'Mô tả ngắn về gia phả dòng họ...'
+                name: newTreeName,
+                description: newTreeDescription || 'Mô tả ngắn về gia phả dòng họ...'
             })
             .select()
             .single()
 
+        setIsSubmitting(false)
         if (error) {
             alert(error.message)
         } else if (data) {
             setTrees([data, ...trees])
+            setIsCreateDialogOpen(false)
+            setNewTreeName('')
+            setNewTreeDescription('')
         }
+    }
+
+    const openCreateDialog = () => {
+        // Optimistic check before server check
+        if (profile?.plan_tier === 'hieu' && trees.length >= 2) {
+            alert('Gói Hiếu chỉ được tạo tối đa 2 gia phả. Vui lòng nâng cấp gói Đạo để tạo thêm.')
+            return
+        }
+        setIsCreateDialogOpen(true)
     }
 
     if (loading) {
@@ -129,17 +155,13 @@ export default function DashboardPage() {
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 border-none focus:ring-2 focus:ring-primary/20 text-sm"
                                 placeholder="Tìm kiếm gia phả..."
                                 type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <button className="p-2 rounded-full hover:bg-gray-100 text-gray-500 relative">
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-2 right-2 size-2 bg-primary rounded-full border-2 border-white"></span>
-                            </button>
-                            <button className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
-                                <Settings className="w-5 h-5" />
-                            </button>
+                            {/* Notifications and Settings hidden as requested */}
                         </div>
 
                         <div className="flex items-center gap-3 border-l border-gray-200 pl-6">
@@ -257,43 +279,43 @@ export default function DashboardPage() {
                     </Card>
                 </div>
 
-                {/* Trees Grid */}
-                <div>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold">Các gia phả của bạn</h2>
-                        <Button onClick={handleCreateTree} className="shadow-lg shadow-primary/20">
+                {/* Family Trees Grid */}
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold text-gray-800">Cây gia phả của bạn</h3>
+                        <Button onClick={openCreateDialog} className="shadow-lg shadow-primary/20">
                             <Plus className="mr-2 h-4 w-4" /> Tạo Gia Phả Mới
                         </Button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {trees.map((tree) => (
-                            <Card key={tree.id} className="group hover:shadow-xl transition-all hover:border-primary/50 border-gray-100">
-                                <CardContent className="p-6">
-                                    <div className="flex items-start gap-3 mb-4">
-                                        <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                            <BookOpen className="w-6 h-6" />
+                        {trees.filter(tree => tree.name.toLowerCase().includes(searchQuery.toLowerCase())).map((tree) => (
+                            <Link key={tree.id} href={`/tree/${tree.id}`}>
+                                <Card className="group border-none shadow-lg hover:shadow-2xl transition-all duration-300 bg-white overflow-hidden rounded-2xl h-full">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-start gap-3 mb-4">
+                                            <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                                <BookOpen className="w-6 h-6" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-lg font-bold mb-1 truncate">{tree.name}</h3>
+                                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                                    {tree.description || 'Chưa có mô tả'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-lg font-bold mb-1 truncate">{tree.name}</h3>
-                                            <p className="text-sm text-muted-foreground line-clamp-2">
-                                                {tree.description || 'Chưa có mô tả'}
-                                            </p>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                                        <span className="text-xs text-muted-foreground">
-                                            {new Date(tree.created_at).toLocaleDateString('vi-VN')}
-                                        </span>
-                                        <Link href={`/tree/${tree.id}`}>
+                                        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                                            <span className="text-xs text-muted-foreground">
+                                                {new Date(tree.created_at).toLocaleDateString('vi-VN')}
+                                            </span>
                                             <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-white transition-colors">
                                                 Xem <ChevronRight className="w-4 h-4 ml-1" />
                                             </Button>
-                                        </Link>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         ))}
 
                         {trees.length === 0 && (
@@ -305,7 +327,7 @@ export default function DashboardPage() {
                                         <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                                             Bắt đầu ghi chép lịch sử gia đình của bạn ngay hôm nay. Tạo gia phả đầu tiên để lưu giữ những câu chuyện quý giá.
                                         </p>
-                                        <Button onClick={handleCreateTree} size="lg" className="shadow-lg shadow-primary/20">
+                                        <Button onClick={openCreateDialog} size="lg" className="shadow-lg shadow-primary/20">
                                             <Plus className="mr-2 h-5 w-5" />
                                             Bắt đầu tạo ngay
                                         </Button>
@@ -361,6 +383,44 @@ export default function DashboardPage() {
                     </Link>
                 </div>
             </main>
+
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Tạo Gia Phả Mới</DialogTitle>
+                        <DialogDescription>
+                            Bắt đầu hành trình ghi chép lịch sử dòng họ của bạn.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="name">Tên gia phả</Label>
+                            <Input
+                                id="name"
+                                placeholder="Ví dụ: Gia tộc Nguyễn Văn"
+                                value={newTreeName}
+                                onChange={(e) => setNewTreeName(e.target.value)}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="description">Mô tả (Tùy chọn)</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Nhập một vài thông tin giới thiệu về gia phả..."
+                                value={newTreeDescription}
+                                onChange={(e) => setNewTreeDescription(e.target.value)}
+                                rows={3}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Hủy</Button>
+                        <Button onClick={handleCreateTree} disabled={isSubmitting}>
+                            {isSubmitting ? 'Đang tạo...' : 'Tạo Gia Phả'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
