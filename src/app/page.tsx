@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   BookOpen,
   Users,
@@ -105,9 +106,36 @@ export default function HomePage() {
 
               <div className="flex items-center gap-4 pt-4">
                 <div className="flex -space-x-3">
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-300" />
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-400" />
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-500" />
+                  <div className="w-10 h-10 rounded-full border-2 border-white relative overflow-hidden bg-slate-200">
+                    <Image
+                      src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&auto=format&fit=crop"
+                      alt="User 1"
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  </div>
+                  <div className="w-10 h-10 rounded-full border-2 border-white relative overflow-hidden bg-slate-200">
+                    <Image
+                      src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&auto=format&fit=crop"
+                      alt="User 2"
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  </div>
+                  <div className="w-10 h-10 rounded-full border-2 border-white relative overflow-hidden bg-slate-200">
+                    <Image
+                      src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&auto=format&fit=crop"
+                      alt="User 3"
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
+                  </div>
+                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 relative z-10">
+                    10k+
+                  </div>
                 </div>
                 <p className="text-sm text-slate-500 font-medium">Hơn 10,000+ gia đình đã tham gia</p>
               </div>
@@ -115,12 +143,14 @@ export default function HomePage() {
 
             <div className="relative">
               <div className="absolute -inset-4 bg-[#D4AF37]/20 rounded-[2.5rem] blur-3xl opacity-30" />
-              <div className="relative rounded-[2rem] overflow-hidden border-8 border-white shadow-2xl aspect-square lg:aspect-video bg-gradient-to-br from-[#8B0000]/20 to-[#D4AF37]/20 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <BookOpen className="w-24 h-24 mx-auto mb-4 text-[#8B0000]" />
-                  <p className="text-2xl font-bold text-[#111621]">Gia Phả Việt</p>
-                  <p className="text-slate-600 mt-2">Nền tảng quản lý gia phả hiện đại</p>
-                </div>
+              <div className="relative rounded-[2rem] overflow-hidden border-8 border-white shadow-2xl aspect-square lg:aspect-video bg-white">
+                <Image
+                  src="/home-feature.jpg"
+                  alt="Gia Phả Việt Feature"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
             </div>
           </div>
@@ -175,8 +205,14 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200">
-                <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                  <BookOpen className="w-20 h-20 text-primary" />
+                <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-primary/10 to-primary/5">
+                  <Image
+                    src="/feature-f1.jpg"
+                    alt="Kéo thả dễ dàng"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                 </div>
                 <div className="px-4 pb-4">
                   <h4 className="text-xl font-bold mb-2">Kéo-thả dễ dàng</h4>
@@ -185,8 +221,14 @@ export default function HomePage() {
               </div>
 
               <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200">
-                <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-[#8B0000]/10 to-[#8B0000]/5 flex items-center justify-center">
-                  <Heart className="w-20 h-20 text-[#8B0000]" />
+                <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-[#8B0000]/10 to-[#8B0000]/5">
+                  <Image
+                    src="/feature-f2.jpg"
+                    alt="Lưu trữ ký ức"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                 </div>
                 <div className="px-4 pb-4">
                   <h4 className="text-xl font-bold mb-2">Lưu trữ ký ức</h4>
@@ -195,8 +237,14 @@ export default function HomePage() {
               </div>
 
               <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200">
-                <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5 flex items-center justify-center">
-                  <FileText className="w-20 h-20 text-[#D4AF37]" />
+                <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/5">
+                  <Image
+                    src="/feature-f3.jpg"
+                    alt="Viết tiếp sử gia"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                 </div>
                 <div className="px-4 pb-4">
                   <h4 className="text-xl font-bold mb-2">Viết tiếp sử gia</h4>

@@ -28,7 +28,7 @@ import {
 import Link from 'next/link'
 import { toPng } from 'html-to-image'
 import { jsPDF } from 'jspdf'
-import { useRouter } from 'next/navigation' // Add this import
+import { useRouter } from 'next/navigation'
 
 interface SelectedState {
     mode: 'view' | 'create' | 'edit'
@@ -55,6 +55,7 @@ function TreeBuilderContent({
     loadTreeData
 }: any) {
     const reactFlowInstance = useReactFlow()
+
     const [showMemberList, setShowMemberList] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
 
@@ -221,10 +222,68 @@ function TreeBuilderContent({
                             <span className="hidden md:inline">Xóa</span>
                         </Button>
                     </div>
+
+
                 </div>
             </header>
 
             <div className="flex flex-1 overflow-hidden relative">
+                {showMemberList && (
+                    <aside className="fixed inset-y-0 left-0 md:relative md:w-64 lg:w-80 bg-white border-r border-[#e5e1e1] flex flex-col z-30 transition-all duration-300 shrink-0 shadow-lg md:shadow-none h-full">
+                        <div className="p-4 border-b border-[#e5e1e1] flex justify-between items-center bg-[#fcf8f8]">
+                            <h3 className="font-bold text-[#1b0d0d]">Danh sách thành viên</h3>
+                            <button onClick={() => setShowMemberList(false)} className="text-[#9a4c4c] hover:text-[#1b0d0d] p-1 rounded-full hover:bg-gray-100">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-3 border-b border-[#e5e1e1] bg-white">
+                            <div className="relative">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm thành viên..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-2 text-sm border border-[#e5e1e1] rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-[#f8f6f6] focus:bg-white transition-colors"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-white">
+                            {filteredMembers.map((member: any) => (
+                                <div
+                                    key={member.id}
+                                    onClick={() => {
+                                        handleNodeClick(member)
+                                        if (window.innerWidth < 768) setShowMemberList(false)
+                                        // Auto focus node
+                                        if (reactFlowInstance) {
+                                            const node = reactFlowInstance.getNode(member.id)
+                                            if (node) {
+                                                reactFlowInstance.setCenter(node.position.x + 150, node.position.y + 50, { zoom: 1.2, duration: 800 })
+                                            }
+                                        }
+                                    }}
+                                    className="p-3 rounded-lg bg-[#f8f6f6] hover:bg-[#ffebeb] cursor-pointer transition-all border border-transparent hover:border-primary/20 group hover:shadow-sm"
+                                >
+                                    <div className="font-medium text-[#1b0d0d] flex items-center justify-between">
+                                        {member.full_name}
+                                        {member.gender === 'male' && <span className="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">Nam</span>}
+                                        {member.gender === 'female' && <span className="text-xs text-pink-500 bg-pink-50 px-1.5 py-0.5 rounded">Nữ</span>}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1 flex gap-2">
+                                        {member.dob_solar && <span>📅 {member.dob_solar}</span>}
+                                    </div>
+                                </div>
+                            ))}
+                            {filteredMembers.length === 0 && (
+                                <div className="text-center py-12 text-gray-400 text-sm flex flex-col items-center">
+                                    <Search className="w-8 h-8 mb-2 opacity-50" />
+                                    <span>Không tìm thấy thành viên nào</span>
+                                </div>
+                            )}
+                        </div>
+                    </aside>
+                )}
                 {/* Left Detail Panel (moved from right) */}
                 {selectedState && (
                     <aside className="fixed inset-0 md:relative md:inset-auto md:w-1/3 md:min-w-[400px] md:max-w-[600px] bg-white md:border-r border-[#e5e1e1] flex flex-col z-40 md:z-20 overflow-hidden shadow-2xl md:shadow-none">
@@ -382,17 +441,21 @@ export default function TreeDetailPage() {
         setSelectedState({ mode: 'create', spouseId })
     }
 
-    const handleNodeDragStop = async (memberId: string, position: { x: number, y: number }) => {
-        const { error } = await supabase
-            .from('members')
-            .update({
-                coordinate_x: position.x,
-                coordinate_y: position.y
-            })
-            .eq('id', memberId)
+    const handleNodeDragStop = async (updates: { id: string, position: { x: number, y: number } }[]) => {
+        const promises = updates.map(u =>
+            supabase
+                .from('members')
+                .update({
+                    coordinate_x: u.position.x,
+                    coordinate_y: u.position.y
+                })
+                .eq('id', u.id)
+        )
 
-        if (error) {
-            console.error("Error saving position:", error)
+        try {
+            await Promise.all(promises)
+        } catch (error) {
+            console.error("Error saving positions:", error)
         }
     }
 

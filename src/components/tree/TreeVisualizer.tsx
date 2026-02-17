@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useMemo, useEffect } from 'react'
+import React, { useCallback, useMemo, useEffect, useState } from 'react'
 import {
     ReactFlow,
     useNodesState,
@@ -13,11 +13,16 @@ import {
     Node,
     useReactFlow,
     reconnectEdge,
-    Connection
+    Connection,
+    Panel,
+    SelectionMode,
+    XYPosition
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { hierarchy, tree, HierarchyPointNode } from 'd3-hierarchy'
 import MemberNode from './MemberNode'
+import { AlignCenter, AlignEndHorizontal, AlignEndVertical, AlignHorizontalDistributeCenter, AlignStartHorizontal, AlignStartVertical, AlignVerticalDistributeCenter } from 'lucide-react'
+import { Button } from '../ui/button'
 
 // Constants
 const NODE_WIDTH = 240 // Increased node width
@@ -152,9 +157,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
                 if (dobA && dobB) {
                     return dobA.localeCompare(dobB)
                 }
-                // If A has date, it likely comes before unknown? Or treat unknown as last?
-                // Usually treating specific as "known" is better. Let's put known dates first?
-                // Actually, if date is missing, we don't know order. Let's stick to valid comparisons.
+
                 if (dobA) return -1
                 if (dobB) return 1
 
@@ -210,7 +213,6 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
             if (d.x > maxX) maxX = d.x
         })
 
-        // If single node, minX can be Infinity if not handled? No, rootD3 always has nodes.
         if (minX === Infinity) minX = 0
         if (maxX === -Infinity) maxX = 0
 
@@ -228,10 +230,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
                 mainNode.position = { x: shiftX, y: y }
             }
 
-            // Position Spouses (Alternating Left/Right)
-            // i=1 (Spouse 1) -> Right 1
-            // i=2 (Spouse 2) -> Left 1
-            // i=3 (Spouse 3) -> Right 2
+            // Position Spouses
             for (let i = 1; i < members.length; i++) {
                 const spouseNode = nodeMap.get(members[i])
                 if (spouseNode) {
@@ -239,7 +238,6 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
                     const pairIndex = Math.ceil(i / 2) // 1,2->1; 3,4->2
 
                     const offset = (NODE_WIDTH + SPOUSE_SPACING) * pairIndex
-                    // If Right: +offset. If Left: -offset.
 
                     spouseNode.position = {
                         x: shiftX + (isRight ? offset : -offset),
@@ -252,8 +250,6 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
             // We want to override the D3 layout if the user has manually set a position
             const applyManualPosition = (node: Node) => {
                 if (node && typeof node.data.coordinate_x === 'number' && typeof node.data.coordinate_y === 'number') {
-                    // Only apply if values are valid numbers
-                    // Cast to number just in case
                     const x = Number(node.data.coordinate_x)
                     const y = Number(node.data.coordinate_y)
                     if (!isNaN(x) && !isNaN(y)) {
@@ -270,8 +266,6 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
         })
 
         // Update global offset for the next tree
-        // Width of this tree is (maxX - minX)
-        // Add padding for next tree
         currentXOffset += (maxX - minX) + COUSIN_SPACING + NODE_WIDTH // Extra safety buffer
     })
 
@@ -282,11 +276,6 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
             const nodeB = nodeMap.get(edge.target) // Original Target
 
             if (nodeA && nodeB && nodeA.position && nodeB.position) {
-                // We enforce Left -> Right flow because:
-                // Node's LEFT handle is Type=Target (Input)
-                // Node's RIGHT handle is Type=Source (Output)
-                // So Edge MUST go from Left Node (Right Handle) -> Right Node (Left Handle)
-
                 if (nodeA.position.x <= nodeB.position.x) {
                     // A is Left, B is Right. Flow is correct.
                     edge.sourceHandle = 'right'
@@ -313,7 +302,7 @@ interface TreeVisualizerProps {
     onAddSpouse?: (spouseId: string) => void
     onEdit?: (member: any) => void
     onDelete?: (memberId: string) => void
-    onNodeDragStop?: (memberId: string, position: { x: number, y: number }) => void
+    onNodeDragStop?: (updates: { id: string, position: XYPosition }[]) => void
 }
 
 export default function TreeVisualizer({
@@ -327,13 +316,98 @@ export default function TreeVisualizer({
 }: TreeVisualizerProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
-    const { fitView } = useReactFlow()
+    const [selectedNodes, setSelectedNodes] = useState<Node[]>([])
 
-    const handleNodeDragStop = useCallback((event: React.MouseEvent, node: Node) => {
+    // Update selectedNodes when nodes change or selection changes
+    useEffect(() => {
+        const selected = nodes.filter(n => n.selected)
+        if (selected.length !== selectedNodes.length || !selected.every((n, i) => n.id === selectedNodes[i]?.id)) {
+            setSelectedNodes(selected)
+        }
+    }, [nodes, selectedNodes])
+
+
+    const handleNodeDragStop = useCallback((event: React.MouseEvent, node: Node, draggedNodes: Node[]) => {
+        const targetNodes = draggedNodes && draggedNodes.length > 0 ? draggedNodes : [node]
+
         if (onNodeDragStop) {
-            onNodeDragStop(node.id, node.position)
+            const updates = targetNodes.map(n => ({
+                id: n.id,
+                position: n.position
+            }))
+            onNodeDragStop(updates)
         }
     }, [onNodeDragStop])
+
+    // Alignment Handlers
+    const alignNodes = (type: 'left' | 'right' | 'top' | 'bottom' | 'center-h' | 'center-v' | 'distribute-h' | 'distribute-v') => {
+        if (selectedNodes.length < 2) return
+
+        let updates: { id: string, position: XYPosition }[] = []
+
+        // Create a copy of selected nodes to work with for sorting/calculations
+        // Note: selectedNodes comes from state, so it's a snapshot.
+
+        if (type === 'distribute-h') {
+            // Sort by X
+            const sorted = [...selectedNodes].sort((a, b) => a.position.x - b.position.x)
+            const minX = sorted[0].position.x
+            const maxX = sorted[sorted.length - 1].position.x
+            const totalWidth = maxX - minX
+            const gap = totalWidth / (sorted.length - 1)
+
+            updates = sorted.map((n, i) => ({
+                id: n.id,
+                position: { ...n.position, x: minX + (gap * i) }
+            }))
+        } else if (type === 'distribute-v') {
+            // Sort by Y
+            const sorted = [...selectedNodes].sort((a, b) => a.position.y - b.position.y)
+            const minY = sorted[0].position.y
+            const maxY = sorted[sorted.length - 1].position.y
+            const totalHeight = maxY - minY
+            const gap = totalHeight / (sorted.length - 1)
+
+            updates = sorted.map((n, i) => ({
+                id: n.id,
+                position: { ...n.position, y: minY + (gap * i) }
+            }))
+        } else {
+            // Alignment logic
+            let targetValue = 0
+
+            if (type === 'left') targetValue = Math.min(...selectedNodes.map(n => n.position.x))
+            else if (type === 'right') targetValue = Math.max(...selectedNodes.map(n => n.position.x))
+            else if (type === 'top') targetValue = Math.min(...selectedNodes.map(n => n.position.y))
+            else if (type === 'bottom') targetValue = Math.max(...selectedNodes.map(n => n.position.y))
+            else if (type === 'center-h') targetValue = selectedNodes.reduce((acc, n) => acc + n.position.x, 0) / selectedNodes.length
+            else if (type === 'center-v') targetValue = selectedNodes.reduce((acc, n) => acc + n.position.y, 0) / selectedNodes.length
+
+            updates = selectedNodes.map(n => {
+                const newPos = { ...n.position }
+                if (['left', 'right', 'center-h'].includes(type)) newPos.x = targetValue
+                if (['top', 'bottom', 'center-v'].includes(type)) newPos.y = targetValue
+                return { id: n.id, position: newPos }
+            })
+        }
+
+        // Update React Flow State immutably
+        setNodes((nds) => nds.map((node) => {
+            const update = updates.find(u => u.id === node.id)
+            if (update) {
+                return {
+                    ...node,
+                    position: update.position,
+                }
+            }
+            return node
+        }))
+
+        // Trigger save to DB
+        if (onNodeDragStop) {
+            onNodeDragStop(updates)
+        }
+    }
 
     // Convert DB members to React Flow Nodes & Edges
     useEffect(() => {
@@ -424,9 +498,6 @@ export default function TreeVisualizer({
         setNodes(layoutNodes)
         setEdges(layoutEdges)
 
-        // Fit view on first load only if needed? Or on data change?
-        // Let's do nothing here, let user control zoom
-
     }, [initialMembers, setNodes, setEdges, onAddChild, onAddSpouse, onEdit, onDelete])
 
     const nodeTypes = useMemo(() => ({ member: MemberNode }), [])
@@ -458,10 +529,27 @@ export default function TreeVisualizer({
                 onNodeClick={handleNodeClick}
                 fitView
                 minZoom={0.1}
+                selectionMode={SelectionMode.Partial}
+                selectionOnDrag={true} // Enable drag selection
             >
                 <Controls />
                 <MiniMap zoomable pannable />
                 <Background gap={12} size={1} color="#f1f1f1" />
+
+                {selectedNodes.length > 1 && (
+                    <Panel position="top-right" className="bg-white p-2 rounded-lg shadow-xl border border-gray-200 flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('left')} title="Căn trái"><AlignStartHorizontal className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('center-h')} title="Căn giữa dọc"><AlignCenter className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('right')} title="Căn phải"><AlignEndHorizontal className="w-4 h-4" /></Button>
+                        <div className="w-[1px] bg-gray-200 mx-1 h-8" />
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('top')} title="Căn trên"><AlignStartVertical className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('center-v')} title="Căn giữa ngang"><AlignVerticalDistributeCenter className="w-4 h-4 decoration-dashed" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('bottom')} title="Căn dưới"><AlignEndVertical className="w-4 h-4" /></Button>
+                        <div className="w-[1px] bg-gray-200 mx-1 h-8" />
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('distribute-h')} title="Phân phối ngang"><AlignHorizontalDistributeCenter className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => alignNodes('distribute-v')} title="Phân phối dọc"><AlignVerticalDistributeCenter className="w-4 h-4" /></Button>
+                    </Panel>
+                )}
             </ReactFlow>
         </div>
     )
