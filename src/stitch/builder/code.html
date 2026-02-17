@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chỉnh sửa Cây Gia Phả - Gia tộc Nguyễn Văn</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec1313",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221010",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .canvas-grid {
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .node-connector-v {
+            width: 2px;
+            background-color: #d1d5db;
+        }
+        .node-connector-h {
+            height: 2px;
+            background-color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1b0d0d] antialiased overflow-hidden h-screen flex flex-col">
+<!-- Header / TopNavBar -->
+<header class="h-16 flex items-center justify-between border-b border-[#e5e1e1] bg-white dark:bg-background-dark/50 px-6 z-30">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined text-2xl">account_tree</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-none">Chỉnh sửa Gia Phả</h1>
+<p class="text-xs text-[#9a4c4c] font-medium">Gia tộc Nguyễn Văn</p>
+</div>
+</div>
+<div class="h-8 w-[1px] bg-[#e5e1e1] mx-2"></div>
+<div class="flex items-center bg-[#f3e7e7] rounded-lg px-3 py-1.5 gap-2 w-64 border border-transparent focus-within:border-primary/30">
+<span class="material-symbols-outlined text-[#9a4c4c] text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 p-0 text-sm w-full placeholder:text-[#9a4c4c]" placeholder="Tìm thành viên..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-white border border-[#e5e1e1] rounded-lg p-1">
+<button class="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"><span class="material-symbols-outlined text-xl">undo</span></button>
+<button class="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"><span class="material-symbols-outlined text-xl">redo</span></button>
+<div class="w-[1px] h-6 bg-[#e5e1e1] mx-1"></div>
+<button class="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"><span class="material-symbols-outlined text-xl">zoom_in</span></button>
+<span class="px-2 text-xs font-semibold">100%</span>
+<button class="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"><span class="material-symbols-outlined text-xl">zoom_out</span></button>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+<span>Xuất PDF</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-[#f3e7e7] text-[#1b0d0d] rounded-lg text-sm font-bold hover:bg-[#eadbdb] transition-all">
+<span class="material-symbols-outlined text-lg">share</span>
+<span>Chia sẻ</span>
+</button>
+</div>
+<div class="size-9 rounded-full bg-cover bg-center border-2 border-white shadow-sm" data-alt="Ảnh đại diện người dùng" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCrN5vOBnY7MzDAViiXXVeejiY_BbO4AcUVqs9bEFRi1iGuHJqoWlncOArJJZUVGjC6Qa7cYqb8iDudEXcV6xnCTb5Ivbd_dyDOA1BC_KsZkDO-Br4JDztkFwIA5w2Al1SXRbMVux-FDiS6fx0p01x_Y4J-mrBrl7SKCY7xNaJgynGtubHKfNHWGgcqPgbUFmr1dDnuykMPou3MYQTrOCUTiPYmqGCoko8PzJ6VQW1cCXfQuwhWkSYh4XH_8AqlvEPaJpESzjT7vJ0')"></div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar: Toolbox -->
+<aside class="w-72 bg-white border-r border-[#e5e1e1] flex flex-col z-20 overflow-y-auto">
+<div class="p-4 border-b border-[#e5e1e1]">
+<h3 class="text-sm font-bold text-[#1b0d0d] uppercase tracking-wider mb-4">Thêm Quan Hệ</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="flex flex-col items-center justify-center p-3 border-2 border-dashed border-[#f3e7e7] rounded-xl hover:border-primary/50 cursor-grab group transition-all">
+<div class="size-10 bg-[#f8f6f6] rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/10">
+<span class="material-symbols-outlined text-primary">family_history</span>
+</div>
+<span class="text-xs font-bold">Cha/Mẹ</span>
+</div>
+<div class="flex flex-col items-center justify-center p-3 border-2 border-dashed border-[#f3e7e7] rounded-xl hover:border-primary/50 cursor-grab group transition-all">
+<div class="size-10 bg-[#f8f6f6] rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/10">
+<span class="material-symbols-outlined text-primary">child_care</span>
+</div>
+<span class="text-xs font-bold">Con cái</span>
+</div>
+<div class="flex flex-col items-center justify-center p-3 border-2 border-dashed border-[#f3e7e7] rounded-xl hover:border-primary/50 cursor-grab group transition-all">
+<div class="size-10 bg-[#f8f6f6] rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/10">
+<span class="material-symbols-outlined text-primary">favorite</span>
+</div>
+<span class="text-xs font-bold">Bạn đời</span>
+</div>
+<div class="flex flex-col items-center justify-center p-3 border-2 border-dashed border-[#f3e7e7] rounded-xl hover:border-primary/50 cursor-grab group transition-all">
+<div class="size-10 bg-[#f8f6f6] rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/10">
+<span class="material-symbols-outlined text-primary">diversity_3</span>
+</div>
+<span class="text-xs font-bold">Anh chị em</span>
+</div>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-sm font-bold text-[#1b0d0d] uppercase tracking-wider mb-4">Danh sách thành viên</h3>
+<div class="space-y-1">
+<div class="flex items-center gap-3 p-2 hover:bg-[#f3e7e7] rounded-lg cursor-pointer transition-colors border-l-4 border-primary bg-[#f3e7e7]/50">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="Nguyễn Văn A" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA52CW4mvIB0nsVzCzbr7KujZzq4ZjXkl5wZtwsFj4CL6B3Vnr3GSz86SvEweelYP0V1VZid_74Kion4VU-cZ0uR5qaHZllgh-ZYjjNOF4DLaypgxrkLQ0EI5fuq2DgPHn3UgAqJKw_JFvFVARypGaRi3kj5XeUDRxHEH7XbmtW2cyecCCa30nfScDDpweg91nR0rNXqo179sShnjaVVdfzRlVa_q0WLYX8ifsPimCJmR1_ceITzMyqNL5KoRxJYQ8X9rE-mrC9u58')"></div>
+<div>
+<p class="text-xs font-bold">Nguyễn Văn A</p>
+<p class="text-[10px] text-[#9a4c4c]">Thủy Tổ - Đời thứ 1</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 hover:bg-[#f3e7e7] rounded-lg cursor-pointer transition-colors">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="Lê Thị B" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC-wULVkpcWXr-4ShtQ1sbeW5hlZQvuNRDnOiGKzGzIpSv5Yz6M0IJCz-0xNwynFcXg-nmFUiFmAh4CrO3FlP1sCe4Gp_orpiiIygSkLBujEjdPjacy-0VpLfVCqAECVKa90HXftGusphDkqruBepstieaCWDj3usMhjG9jIYgUgukjd7MiYs9UkO4FFtAxG4dfHkZHiylnDjztlQfwvTiSd40ilAi3p2IsI1-JoxWxKy9clMOphp7EJKgXGkes9EOvczyZQqn2rz4')"></div>
+<div>
+<p class="text-xs font-bold">Lê Thị B</p>
+<p class="text-[10px] text-[#9a4c4c]">Phu nhân - Đời thứ 1</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 hover:bg-[#f3e7e7] rounded-lg cursor-pointer transition-colors">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="Nguyễn Văn C" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDOUI2RTFdaCr1Y7FJ6Su0oysUXainxLXNjo14QxCXkXZtFIrmzteu9PA1yyqiczxL7s7SFExgpD9DNrH9mkEiekghbJ6xPq1UYIo_S4JDtQttHvNrFxNExyt19SE39J4L0loTzfhhA4ENs32NUHo0sQgB9kKcEtFrLgxzabwjVNe2USmLmMy9h6MNRTsCmRhP6TT1LSwUhGxmCMSJfHK-s9poST9e0w_LmNOTkq3X6dfJ90ek93iZ5G-chTdY7yhmZexfrjsJwB88')"></div>
+<div>
+<p class="text-xs font-bold">Nguyễn Văn C</p>
+<p class="text-[10px] text-[#9a4c4c]">Con trưởng - Đời thứ 2</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Canvas Area -->
+<main class="flex-1 bg-background-light canvas-grid relative overflow-auto p-12">
+<!-- Family Tree Structure Visualization -->
+<div class="flex flex-col items-center gap-12 min-w-max">
+<!-- Generation 1 -->
+<div class="flex gap-16 relative">
+<!-- Root Node -->
+<div class="relative group">
+<div class="w-56 bg-white rounded-xl shadow-lg border-b-4 border-primary p-4 hover:shadow-xl transition-shadow cursor-pointer border-t border-x border-[#e5e1e1]">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-0.5 rounded-full whitespace-nowrap">
+                                ĐỜI THỨ 1
+                            </div>
+<div class="flex flex-col items-center text-center">
+<div class="size-16 rounded-full border-2 border-[#f3e7e7] p-1 mb-2">
+<div class="size-full rounded-full bg-cover bg-center" data-alt="Nguyễn Văn A" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAe_JZ2LfnWYSMvMHxqswYV9iDpP-A7pyoKGpCuAleC7TyNPZnYmVNf3XkD8K4UPTr9NZB5hDUvM55msYP8BpVGkcOptjoXFW2mABJe9STF8bN_4QU7AHJ04XytZYx4ucZvgBphAmXu6adW8l0DcthkasfDwdoKSuV1j1tDAiJeUtw6fyC-bE1MsLJ3aQV8bArNXm9IrClVh_6koDhtyt_7l7dr8w2fdXN5ZyWAnKWj9agCC6WvejDB3rIV9T2TyNgu9_pFw_QNOAI')"></div>
+</div>
+<h4 class="font-bold text-sm">Nguyễn Văn A</h4>
+<p class="text-[10px] text-[#9a4c4c] mt-1">1900 - 1980</p>
+</div>
+</div>
+<!-- Connector Down -->
+<div class="absolute top-full left-1/2 -translate-x-1/2 h-12 node-connector-v"></div>
+</div>
+<!-- Spouse Node -->
+<div class="relative group">
+<div class="w-56 bg-white rounded-xl shadow-md border-b-4 border-amber-800 p-4 hover:shadow-xl transition-shadow cursor-pointer border-t border-x border-[#e5e1e1]">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-800 text-white text-[10px] font-bold px-3 py-0.5 rounded-full whitespace-nowrap">
+                                PHU NHÂN
+                            </div>
+<div class="flex flex-col items-center text-center">
+<div class="size-16 rounded-full border-2 border-[#f3e7e7] p-1 mb-2">
+<div class="size-full rounded-full bg-cover bg-center" data-alt="Lê Thị B" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBMOKkc--X4qGj7B-Fr7scWDRrfcfPHqRB2a-XD--vzXQ18navw2yPVUOOwFmwuOi_ODHBjq4PLyE6Y0mJR0b40_-a3NapD7pMCPXazglNTm14S-tFjyPcBgfTLkvvTpw9n9nrBRVlYRlYsHFci6IcitxvdfkJj9XfvTx_SbwZ6wk_LP4wZGH3aSdj6X7hfzZbxFEVZldTbewJVjHgqgAaP3wa4RP7JXJwlVSDTLO49AKG892GQexhjNtEEG4KG5QcjIfy4M7FHiG4')"></div>
+</div>
+<h4 class="font-bold text-sm">Lê Thị B</h4>
+<p class="text-[10px] text-[#9a4c4c] mt-1">1905 - 1985</p>
+</div>
+</div>
+<!-- Horizontal Spouse Line -->
+<div class="absolute top-1/2 -left-16 w-16 node-connector-h border-t-2 border-dashed border-[#d1d5db] bg-transparent"></div>
+</div>
+</div>
+<!-- Generation 2 -->
+<div class="relative pt-12">
+<!-- Horizontal line connecting siblings -->
+<div class="absolute top-0 left-1/4 right-1/4 h-[2px] bg-[#d1d5db]"></div>
+<div class="flex gap-12">
+<!-- Child 1 -->
+<div class="relative">
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 h-12 node-connector-v"></div>
+<div class="w-52 bg-white rounded-xl shadow-md border-b-4 border-primary/60 p-4 hover:border-primary transition-all cursor-pointer border-t border-x border-[#e5e1e1]">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#9a4c4c] text-white text-[10px] font-bold px-3 py-0.5 rounded-full whitespace-nowrap">
+                                    ĐỜI THỨ 2
+                                </div>
+<div class="flex flex-col items-center text-center">
+<div class="size-14 rounded-full border-2 border-[#f3e7e7] p-1 mb-2">
+<div class="size-full rounded-full bg-cover bg-center" data-alt="Nguyễn Văn C" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAlvMUV8QFra9p9nkxM_OvUL9U_FjuneegfI7qVnqnumIsuABczLtn1Hl2rf-VsLLPRCYUWw3aXqkXV1pH3sPHESHUVLBrnUhC1N3yTjcnrBl0OiJLXGsUudS7i7_UYzG-dQ7sUHA9uXb4ShHid6Y_7pGPtd3M-ooYn9Ndy4sYS6V3YWMwtuZww8sAomk7BN8HIcT2SHCsIioaxjS1RqWYqEHY_2CWQkl5kaKMIDPqjU4R0ZGMr02MHdYpvB2MrPSvBAXMb5pRGG2I')"></div>
+</div>
+<h4 class="font-bold text-sm">Nguyễn Văn C</h4>
+<p class="text-[10px] text-[#9a4c4c] mt-1">1930 - 2005</p>
+</div>
+</div>
+</div>
+<!-- Child 2 -->
+<div class="relative">
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 h-12 node-connector-v"></div>
+<div class="w-52 bg-white rounded-xl shadow-md border-b-4 border-primary/60 p-4 hover:border-primary transition-all cursor-pointer border-t border-x border-[#e5e1e1]">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#9a4c4c] text-white text-[10px] font-bold px-3 py-0.5 rounded-full whitespace-nowrap">
+                                    ĐỜI THỨ 2
+                                </div>
+<div class="flex flex-col items-center text-center">
+<div class="size-14 rounded-full border-2 border-[#f3e7e7] p-1 mb-2">
+<div class="size-full rounded-full bg-cover bg-center" data-alt="Nguyễn Thị D" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLml82EXtOiztYplKMs3tyuWlBarP_brrKYAB7GR2kBePo_bduhxCH3dVLpSmx1DGvEGhy8HdPCrSscb_BrTOPuyojBSopx52Ya37_tVpswUFKQkHm94Iry_P8GQZvOH2wqw2FUog0nTdche_LbzefGbWEKd1dEPSU3tZUkDysLKKqcMA2QX_eI3HVkMWdinKbbrM3RqYJr0mkbvOqZhsLznLBflGPlaJkC2puwiR8RdQE9k7D1PAcDOdh_CAEv6eAK3w-nLJ0i14')"></div>
+</div>
+<h4 class="font-bold text-sm">Nguyễn Thị D</h4>
+<p class="text-[10px] text-[#9a4c4c] mt-1">1935 - Nay</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Tooltips/Actions -->
+<div class="fixed bottom-6 right-80 flex flex-col gap-2">
+<button class="size-12 bg-white rounded-full shadow-lg flex items-center justify-center text-[#1b0d0d] hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="size-12 bg-white rounded-full shadow-lg flex items-center justify-center text-[#1b0d0d] hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+</main>
+<!-- Right Detail Panel -->
+<aside class="w-80 bg-white border-l border-[#e5e1e1] flex flex-col z-20 overflow-y-auto">
+<div class="p-5 border-b border-[#e5e1e1] flex justify-between items-center bg-[#fcf8f8]">
+<h3 class="font-bold text-[#1b0d0d]">Thông tin chi tiết</h3>
+<button class="text-[#9a4c4c] hover:text-[#1b0d0d]">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-6 flex flex-col items-center border-b border-[#e5e1e1]">
+<div class="size-24 rounded-full border-4 border-[#f3e7e7] p-1 relative mb-4">
+<div class="size-full rounded-full bg-cover bg-center" data-alt="Nguyễn Văn A" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBrU5e5WKvIt9Oav69nI9auNGhT-Nb2-pX2TfBvjfnyjScJkBRMX4O0GMXgywgrs9D61o6z6jmq0W25zENzDfODBfLCpXEO5r3DfQpiiA-Mvx3pJROf-auwsSnjZbuKmab2Kz5-O7OnT-qoqooZunEdJ0aQRPHhFklIq_BPgS9FDr3T0GFsQAoRBrxw58leBwSyiY0QRXO7XMNI1fl599dcAj2urcNcGAQdf5trYPcXij6-YCUkwk2G2YafQqxr6pIa97NOxTk4qvI')"></div>
+<button class="absolute bottom-0 right-0 size-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-sm">photo_camera</span>
+</button>
+</div>
+<h2 class="text-xl font-bold">Nguyễn Văn A</h2>
+<span class="text-xs font-bold text-primary uppercase mt-1">Thủy Tổ (Đời 1)</span>
+</div>
+<div class="p-5 space-y-6">
+<div class="space-y-4">
+<div>
+<label class="block text-[10px] font-bold text-[#9a4c4c] uppercase mb-1">Họ và Tên</label>
+<input class="w-full text-sm font-medium border-[#f3e7e7] rounded-lg focus:ring-primary focus:border-primary" type="text" value="Nguyễn Văn A"/>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-[10px] font-bold text-[#9a4c4c] uppercase mb-1">Năm sinh</label>
+<input class="w-full text-sm font-medium border-[#f3e7e7] rounded-lg focus:ring-primary focus:border-primary" type="text" value="1900"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-[#9a4c4c] uppercase mb-1">Năm mất</label>
+<input class="w-full text-sm font-medium border-[#f3e7e7] rounded-lg focus:ring-primary focus:border-primary" type="text" value="1980"/>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-[#9a4c4c] uppercase mb-1">Quê quán</label>
+<input class="w-full text-sm font-medium border-[#f3e7e7] rounded-lg focus:ring-primary focus:border-primary" type="text" value="Nam Định, Việt Nam"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-[#9a4c4c] uppercase mb-1">Tiểu sử</label>
+<textarea class="w-full text-sm font-medium border-[#f3e7e7] rounded-lg focus:ring-primary focus:border-primary resize-none" rows="4">Người khai sáng chi họ Nguyễn tại làng... Tham gia kháng chiến năm 1945.</textarea>
+</div>
+<div>
+<label class="block text-[10px] font-bold text-[#9a4c4c] uppercase mb-1">Vị trí mộ phần</label>
+<div class="flex items-center gap-2 p-2 bg-[#f8f6f6] rounded-lg border border-[#f3e7e7] cursor-pointer hover:bg-[#f3e7e7] transition-colors">
+<span class="material-symbols-outlined text-primary text-xl">location_on</span>
+<span class="text-xs font-medium">Nghĩa trang liệt sĩ tỉnh...</span>
+</div>
+</div>
+</div>
+<div class="pt-4 flex gap-3">
+<button class="flex-1 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 shadow-md transition-all">
+                        Lưu thay đổi
+                    </button>
+<button class="px-3 py-2.5 bg-white text-[#1b0d0d] border border-[#f3e7e7] rounded-lg hover:bg-[#f8f6f6] transition-all">
+<span class="material-symbols-outlined text-xl leading-none">delete</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+</body></html>
