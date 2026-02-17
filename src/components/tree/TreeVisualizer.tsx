@@ -86,6 +86,7 @@ export default function TreeVisualizer({
                 gender: m.gender,
                 isRoot: m.relationship === 'root',
                 dates: m.dob_solar,
+                image_url: m.image_url,
                 canAddSpouse: true,
                 onEdit: () => onEdit && onEdit(m),
                 onAddChild: () => onAddChild && onAddChild(m.id),

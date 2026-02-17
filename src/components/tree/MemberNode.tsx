@@ -15,6 +15,7 @@ import {
 type MemberNodeData = {
     name: string
     gender: 'male' | 'female' | 'other'
+    image_url?: string
     isRoot?: boolean
     dates?: string
     canAddSpouse?: boolean
@@ -43,10 +44,14 @@ function MemberNode({ data }: { data: MemberNodeData }) {
 
                         <div className="flex flex-col items-center">
                             <div className={`
-                        w-10 h-10 rounded-full mb-2 flex items-center justify-center text-lg font-bold text-white shadow-sm
+                        w-10 h-10 rounded-full mb-2 flex items-center justify-center text-lg font-bold text-white shadow-sm overflow-hidden
                         ${isMale ? 'bg-sky-500' : (isFemale ? 'bg-pink-400' : 'bg-gray-400')}
                     `}>
-                                {data.name.charAt(0).toUpperCase()}
+                                {data.image_url ? (
+                                    <img src={data.image_url} alt={data.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    data.name.charAt(0).toUpperCase()
+                                )}
                             </div>
                             <div className="font-bold text-sm text-gray-800 text-center leading-tight line-clamp-2">{data.name}</div>
                             {data.dates && <div className="text-[10px] text-gray-400 mt-1">{data.dates}</div>}

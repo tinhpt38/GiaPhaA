@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import TreeVisualizer from '@/components/tree/TreeVisualizer'
 import { MemberForm } from '@/components/tree/MemberForm'
+import { GenealogyGuide } from '@/components/tree/GenealogyGuide'
 import { Button } from '@/components/ui/button'
 import { ReactFlowProvider } from '@xyflow/react'
 import { ArrowLeft, Plus } from 'lucide-react'
@@ -100,11 +101,8 @@ export default function TreeDetailPage() {
             <div className="flex flex-1 overflow-hidden">
 
                 {/* Left Panel: Form / Details */}
-                <aside className={`
-            w-1/3 min-w-[420px] bg-white border-r shadow-lg z-20 overflow-hidden transition-all duration-300
-            ${selectedState ? 'translate-x-0' : '-translate-x-full w-0 min-w-0 opacity-0 border-none'}
-        `}>
-                    {selectedState && (
+                <aside className="w-1/3 min-w-[420px] bg-white border-r shadow-lg z-20 overflow-hidden transition-all duration-300">
+                    {selectedState ? (
                         <div className="h-full">
                             <MemberForm
                                 mode={selectedState.mode === 'edit' ? 'edit' : 'create'}
@@ -116,6 +114,8 @@ export default function TreeDetailPage() {
                                 onCancel={() => setSelectedState(null)}
                             />
                         </div>
+                    ) : (
+                        <GenealogyGuide />
                     )}
                 </aside>
 
