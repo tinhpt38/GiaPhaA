@@ -303,6 +303,7 @@ interface TreeVisualizerProps {
     onEdit?: (member: any) => void
     onDelete?: (memberId: string) => void
     onNodeDragStop?: (updates: { id: string, position: XYPosition }[]) => void
+    readOnly?: boolean
 }
 
 export default function TreeVisualizer({
@@ -312,7 +313,8 @@ export default function TreeVisualizer({
     onAddSpouse,
     onEdit,
     onDelete,
-    onNodeDragStop
+    onNodeDragStop,
+    readOnly = false
 }: TreeVisualizerProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
@@ -328,6 +330,8 @@ export default function TreeVisualizer({
 
 
     const handleNodeDragStop = useCallback((event: React.MouseEvent, node: Node, draggedNodes: Node[]) => {
+        if (readOnly) return
+
         const targetNodes = draggedNodes && draggedNodes.length > 0 ? draggedNodes : [node]
 
         if (onNodeDragStop) {
@@ -337,11 +341,11 @@ export default function TreeVisualizer({
             }))
             onNodeDragStop(updates)
         }
-    }, [onNodeDragStop])
+    }, [onNodeDragStop, readOnly])
 
     // Alignment Handlers
     const alignNodes = (type: 'left' | 'right' | 'top' | 'bottom' | 'center-h' | 'center-v' | 'distribute-h' | 'distribute-v') => {
-        if (selectedNodes.length < 2) return
+        if (readOnly || selectedNodes.length < 2) return
 
         let updates: { id: string, position: XYPosition }[] = []
 
@@ -435,13 +439,15 @@ export default function TreeVisualizer({
                 onEdit: () => onEdit && onEdit(m),
                 onAddChild: () => onAddChild && onAddChild(m.id),
                 onAddSpouse: () => onAddSpouse && onAddSpouse(m.id),
-                onDelete: () => onDelete && onDelete(m.id)
+                onDelete: () => onDelete && onDelete(m.id),
+                isReadOnly: readOnly
             },
             position: {
                 x: (typeof m.coordinate_x === 'number' ? m.coordinate_x : 0),
                 y: (typeof m.coordinate_y === 'number' ? m.coordinate_y : 0)
             },
-            draggable: true // Enable dragging initially
+            draggable: !readOnly,
+            selectable: !readOnly
         }))
 
         const flowEdges: Edge[] = []
@@ -498,16 +504,17 @@ export default function TreeVisualizer({
         setNodes(layoutNodes)
         setEdges(layoutEdges)
 
-    }, [initialMembers, setNodes, setEdges, onAddChild, onAddSpouse, onEdit, onDelete])
+    }, [initialMembers, setNodes, setEdges, onAddChild, onAddSpouse, onEdit, onDelete, readOnly])
 
     const nodeTypes = useMemo(() => ({ member: MemberNode }), [])
 
     const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+        if (readOnly) return
         const member = initialMembers.find((m: any) => m.id === node.id)
         if (member && onNodeClick) {
             onNodeClick(member)
         }
-    }, [initialMembers, onNodeClick])
+    }, [initialMembers, onNodeClick, readOnly])
 
     const onReconnect = useCallback(
         (oldEdge: Edge, newConnection: Connection) => {
@@ -530,13 +537,16 @@ export default function TreeVisualizer({
                 fitView
                 minZoom={0.1}
                 selectionMode={SelectionMode.Partial}
-                selectionOnDrag={true} // Enable drag selection
+                selectionOnDrag={!readOnly}
+                nodesDraggable={!readOnly}
+                nodesConnectable={!readOnly}
+                elementsSelectable={!readOnly}
             >
                 <Controls />
                 <MiniMap zoomable pannable />
                 <Background gap={12} size={1} color="#f1f1f1" />
 
-                {selectedNodes.length > 1 && (
+                {!readOnly && selectedNodes.length > 1 && (
                     <Panel position="top-right" className="bg-white p-2 rounded-lg shadow-xl border border-gray-200 flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => alignNodes('left')} title="Căn trái"><AlignStartHorizontal className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => alignNodes('center-h')} title="Căn giữa dọc"><AlignCenter className="w-4 h-4" /></Button>

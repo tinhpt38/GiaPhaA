@@ -169,7 +169,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>
 
 interface MemberFormProps {
-    mode: 'create' | 'edit'
+    mode: 'create' | 'edit' | 'view'
     treeId: string
     parentId?: string
     spouseId?: string
@@ -221,7 +221,7 @@ export function MemberForm({
     })
 
     useEffect(() => {
-        if (mode === 'edit' && editMember) {
+        if ((mode === 'edit' || mode === 'view') && editMember) {
             form.reset({
                 full_name: editMember.full_name || "",
                 nickname: editMember.nickname || "",
@@ -425,293 +425,297 @@ export function MemberForm({
                         console.error("Form State:", form.formState)
                         alert("Lỗi validate: " + JSON.stringify(errors, null, 2))
                     })} className="space-y-5 md:space-y-6">
-                        <Tabs defaultValue="basic" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
-                                <TabsTrigger value="basic" className="text-xs md:text-sm">Cơ bản</TabsTrigger>
-                                <TabsTrigger value="details" className="text-xs md:text-sm">Chi tiết</TabsTrigger>
-                            </TabsList>
+                        <fieldset disabled={mode === 'view'} className="contents">
+                            <Tabs defaultValue="basic" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
+                                    <TabsTrigger value="basic" className="text-xs md:text-sm">Cơ bản</TabsTrigger>
+                                    <TabsTrigger value="details" className="text-xs md:text-sm">Chi tiết</TabsTrigger>
+                                </TabsList>
 
-                            <TabsContent value="basic" className="space-y-4 md:space-y-5">
-                                <FormField
-                                    control={form.control}
-                                    name="full_name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Họ và tên (Tên húy)</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Nguyễn Văn A" className="bg-white h-10" {...field} />
-                                            </FormControl>
-                                            <FormDescription className="text-[10px] md:text-xs">
-                                                Tên do cha mẹ đặt từ nhỏ.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                <TabsContent value="basic" className="space-y-4 md:space-y-5">
                                     <FormField
                                         control={form.control}
-                                        name="gender"
+                                        name="full_name"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs md:text-sm font-bold">Giới tính</FormLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger className="bg-white h-10">
-                                                            <SelectValue placeholder="Chọn" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="male">Nam</SelectItem>
-                                                        <SelectItem value="female">Nữ</SelectItem>
-                                                        <SelectItem value="other">Khác</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Họ và tên (Tên húy)</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Nguyễn Văn A" className="bg-white h-10" {...field} />
+                                                </FormControl>
+                                                <FormDescription className="text-[10px] md:text-xs">
+                                                    Tên do cha mẹ đặt từ nhỏ.
+                                                </FormDescription>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                         <FormField
                                             control={form.control}
-                                            name="child_order"
+                                            name="gender"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel className="text-xs md:text-sm font-bold">Con thứ</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" className="bg-white h-10" {...field} value={field.value as number ?? ''} placeholder="Ví dụ: 1 (Trưởng nam)" />
-                                                    </FormControl>
+                                                    <FormLabel className="text-xs md:text-sm font-bold">Giới tính</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger className="bg-white h-10">
+                                                                <SelectValue placeholder="Chọn" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="male">Nam</SelectItem>
+                                                            <SelectItem value="female">Nữ</SelectItem>
+                                                            <SelectItem value="other">Khác</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
                                                 </FormItem>
                                             )}
                                         />
-                                        <FormField
-                                            control={form.control}
-                                            name="generation"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-xs md:text-sm font-bold">Đời thứ</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" className="bg-white h-10" {...field} value={field.value as number ?? ''} />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                            <FormField
+                                                control={form.control}
+                                                name="child_order"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-xs md:text-sm font-bold">Con thứ</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="number" className="bg-white h-10" {...field} value={field.value as number ?? ''} placeholder="Ví dụ: 1 (Trưởng nam)" />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="generation"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-xs md:text-sm font-bold">Đời thứ</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="number" className="bg-white h-10" {...field} value={field.value as number ?? ''} />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <AdvancedDateInput
+                                            label="Ngày Sinh"
+                                            solarDate={{
+                                                day: form.watch('dob_solar_day') as number,
+                                                month: form.watch('dob_solar_month') as number,
+                                                year: form.watch('dob_solar_year') as number
+                                            }}
+                                            lunarDate={{
+                                                day: form.watch('dob_lunar_day') as number,
+                                                month: form.watch('dob_lunar_month') as number,
+                                                year: form.watch('dob_lunar_year') as number
+                                            }}
+                                            onChange={(solar, lunar) => {
+                                                form.setValue('dob_solar_day', solar.day)
+                                                form.setValue('dob_solar_month', solar.month)
+                                                form.setValue('dob_solar_year', solar.year)
+                                                form.setValue('dob_lunar_day', lunar.day)
+                                                form.setValue('dob_lunar_month', lunar.month)
+                                                form.setValue('dob_lunar_year', lunar.year)
+                                            }}
+                                        />
+
+                                        <AdvancedDateInput
+                                            label="Ngày Mất"
+                                            solarDate={{
+                                                day: form.watch('dod_solar_day') as number,
+                                                month: form.watch('dod_solar_month') as number,
+                                                year: form.watch('dod_solar_year') as number
+                                            }}
+                                            lunarDate={{
+                                                day: form.watch('dod_lunar_day') as number,
+                                                month: form.watch('dod_lunar_month') as number,
+                                                year: form.watch('dod_lunar_year') as number
+                                            }}
+                                            onChange={(solar, lunar) => {
+                                                form.setValue('dod_solar_day', solar.day)
+                                                form.setValue('dod_solar_month', solar.month)
+                                                form.setValue('dod_solar_year', solar.year)
+                                                form.setValue('dod_lunar_day', lunar.day)
+                                                form.setValue('dod_lunar_month', lunar.month)
+                                                form.setValue('dod_lunar_year', lunar.year)
+                                            }}
                                         />
                                     </div>
-                                </div>
 
-                                <div className="space-y-4">
-                                    <AdvancedDateInput
-                                        label="Ngày Sinh"
-                                        solarDate={{
-                                            day: form.watch('dob_solar_day') as number,
-                                            month: form.watch('dob_solar_month') as number,
-                                            year: form.watch('dob_solar_year') as number
-                                        }}
-                                        lunarDate={{
-                                            day: form.watch('dob_lunar_day') as number,
-                                            month: form.watch('dob_lunar_month') as number,
-                                            year: form.watch('dob_lunar_year') as number
-                                        }}
-                                        onChange={(solar, lunar) => {
-                                            form.setValue('dob_solar_day', solar.day)
-                                            form.setValue('dob_solar_month', solar.month)
-                                            form.setValue('dob_solar_year', solar.year)
-                                            form.setValue('dob_lunar_day', lunar.day)
-                                            form.setValue('dob_lunar_month', lunar.month)
-                                            form.setValue('dob_lunar_year', lunar.year)
-                                        }}
-                                    />
-
-                                    <AdvancedDateInput
-                                        label="Ngày Mất"
-                                        solarDate={{
-                                            day: form.watch('dod_solar_day') as number,
-                                            month: form.watch('dod_solar_month') as number,
-                                            year: form.watch('dod_solar_year') as number
-                                        }}
-                                        lunarDate={{
-                                            day: form.watch('dod_lunar_day') as number,
-                                            month: form.watch('dod_lunar_month') as number,
-                                            year: form.watch('dod_lunar_year') as number
-                                        }}
-                                        onChange={(solar, lunar) => {
-                                            form.setValue('dod_solar_day', solar.day)
-                                            form.setValue('dod_solar_month', solar.month)
-                                            form.setValue('dod_solar_year', solar.year)
-                                            form.setValue('dod_lunar_day', lunar.day)
-                                            form.setValue('dod_lunar_month', lunar.month)
-                                            form.setValue('dod_lunar_year', lunar.year)
-                                        }}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                    <FormField control={form.control} name="father_name" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Con Ông</FormLabel>
-                                            <FormControl>
-                                                <InputWithSuggestions
-                                                    value={field.value || ""}
-                                                    onChange={field.onChange}
-                                                    options={maleMembers}
-                                                    placeholder="Tên cha..."
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="mother_name" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Con Bà</FormLabel>
-                                            <FormControl>
-                                                <InputWithSuggestions
-                                                    value={field.value || ""}
-                                                    onChange={field.onChange}
-                                                    options={femaleMembers}
-                                                    placeholder="Tên mẹ..."
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )} />
-                                </div>
-                            </TabsContent>
-
-                            <TabsContent value="details" className="space-y-4 md:space-y-5">
-                                <FormField control={form.control} name="image_url" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs md:text-sm font-bold">Ảnh đại diện (URL)</FormLabel>
-                                        <FormControl><Input className="bg-white h-10" placeholder="https://..." {...field} /></FormControl>
-                                    </FormItem>
-                                )} />
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                    <FormField control={form.control} name="nickname" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Tên Tự</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="title" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Tên Hiệu</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
-                                        </FormItem>
-                                    )} />
-                                </div>
-
-                                <FormField control={form.control} name="posthumous_name" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs md:text-sm font-bold">Tên Thụy</FormLabel>
-                                        <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
-                                    </FormItem>
-                                )} />
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                    <FormField control={form.control} name="spouse_id" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Vợ/Chồng của ai</FormLabel>
-                                            <Select
-                                                onValueChange={(val) => {
-                                                    field.onChange(val)
-                                                    // Update name automatically
-                                                    const spouse = existingMembers.find(m => m.id === val)
-                                                    if (spouse) {
-                                                        form.setValue('spouse_name', spouse.full_name)
-                                                    }
-                                                }}
-                                                value={field.value || undefined}
-                                            >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <FormField control={form.control} name="father_name" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Con Ông</FormLabel>
                                                 <FormControl>
-                                                    <SelectTrigger className="bg-white h-10">
-                                                        <SelectValue placeholder="Chọn người hôn phối" />
-                                                    </SelectTrigger>
+                                                    <InputWithSuggestions
+                                                        value={field.value || ""}
+                                                        onChange={field.onChange}
+                                                        options={maleMembers}
+                                                        placeholder="Tên cha..."
+                                                    />
                                                 </FormControl>
-                                                <SelectContent>
-                                                    {potentialSpouses.map(m => (
-                                                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name="mother_name" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Con Bà</FormLabel>
+                                                <FormControl>
+                                                    <InputWithSuggestions
+                                                        value={field.value || ""}
+                                                        onChange={field.onChange}
+                                                        options={femaleMembers}
+                                                        placeholder="Tên mẹ..."
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )} />
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="details" className="space-y-4 md:space-y-5">
+                                    <FormField control={form.control} name="image_url" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs md:text-sm font-bold">Ảnh đại diện (URL)</FormLabel>
+                                            <FormControl><Input className="bg-white h-10" placeholder="https://..." {...field} /></FormControl>
                                         </FormItem>
                                     )} />
 
-                                    <FormField control={form.control} name="spouse_name" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Tên Phối ngẫu (Hiển thị)</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
-                                        </FormItem>
-                                    )} />
-                                </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <FormField control={form.control} name="nickname" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Tên Tự</FormLabel>
+                                                <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name="title" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Tên Hiệu</FormLabel>
+                                                <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                    </div>
 
-                                <AdvancedDateInput
-                                    label="Ngày Kết Hôn"
-                                    solarDate={{
-                                        day: form.watch('marriage_date_solar_day') as number,
-                                        month: form.watch('marriage_date_solar_month') as number,
-                                        year: form.watch('marriage_date_solar_year') as number
-                                    }}
-                                    lunarDate={{
-                                        day: form.watch('marriage_date_lunar_day') as number,
-                                        month: form.watch('marriage_date_lunar_month') as number,
-                                        year: form.watch('marriage_date_lunar_year') as number
-                                    }}
-                                    onChange={(solar, lunar) => {
-                                        form.setValue('marriage_date_solar_day', solar.day)
-                                        form.setValue('marriage_date_solar_month', solar.month)
-                                        form.setValue('marriage_date_solar_year', solar.year)
-                                        form.setValue('marriage_date_lunar_day', lunar.day)
-                                        form.setValue('marriage_date_lunar_month', lunar.month)
-                                        form.setValue('marriage_date_lunar_year', lunar.year)
-                                    }}
-                                />
+                                    <FormField control={form.control} name="posthumous_name" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs md:text-sm font-bold">Tên Thụy</FormLabel>
+                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                        </FormItem>
+                                    )} />
 
-                                <FormField control={form.control} name="job" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs md:text-sm font-bold">Nghề nghiệp</FormLabel>
-                                        <FormControl><Textarea className="resize-none h-20 bg-white" placeholder="Chức vụ, công nghiệp..." {...field} /></FormControl>
-                                    </FormItem>
-                                )} />
-                                <FormField control={form.control} name="achievement" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-xs md:text-sm font-bold">Khoa bảng</FormLabel>
-                                        <FormControl><Textarea className="resize-none h-20 bg-white" {...field} /></FormControl>
-                                    </FormItem>
-                                )} />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <FormField control={form.control} name="spouse_id" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Vợ/Chồng của ai</FormLabel>
+                                                <Select
+                                                    onValueChange={(val) => {
+                                                        field.onChange(val)
+                                                        // Update name automatically
+                                                        const spouse = existingMembers.find(m => m.id === val)
+                                                        if (spouse) {
+                                                            form.setValue('spouse_name', spouse.full_name)
+                                                        }
+                                                    }}
+                                                    value={field.value || undefined}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className="bg-white h-10">
+                                                            <SelectValue placeholder="Chọn người hôn phối" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {potentialSpouses.map(m => (
+                                                            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormItem>
+                                        )} />
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                    <FormField control={form.control} name="birth_place" render={({ field }) => (
+                                        <FormField control={form.control} name="spouse_name" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Tên Phối ngẫu (Hiển thị)</FormLabel>
+                                                <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                    </div>
+
+                                    <AdvancedDateInput
+                                        label="Ngày Kết Hôn"
+                                        solarDate={{
+                                            day: form.watch('marriage_date_solar_day') as number,
+                                            month: form.watch('marriage_date_solar_month') as number,
+                                            year: form.watch('marriage_date_solar_year') as number
+                                        }}
+                                        lunarDate={{
+                                            day: form.watch('marriage_date_lunar_day') as number,
+                                            month: form.watch('marriage_date_lunar_month') as number,
+                                            year: form.watch('marriage_date_lunar_year') as number
+                                        }}
+                                        onChange={(solar, lunar) => {
+                                            form.setValue('marriage_date_solar_day', solar.day)
+                                            form.setValue('marriage_date_solar_month', solar.month)
+                                            form.setValue('marriage_date_solar_year', solar.year)
+                                            form.setValue('marriage_date_lunar_day', lunar.day)
+                                            form.setValue('marriage_date_lunar_month', lunar.month)
+                                            form.setValue('marriage_date_lunar_year', lunar.year)
+                                        }}
+                                    />
+
+                                    <FormField control={form.control} name="job" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Sinh quán</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            <FormLabel className="text-xs md:text-sm font-bold">Nghề nghiệp</FormLabel>
+                                            <FormControl><Textarea className="resize-none h-20 bg-white" placeholder="Chức vụ, công nghiệp..." {...field} /></FormControl>
                                         </FormItem>
                                     )} />
-                                    <FormField control={form.control} name="residence" render={({ field }) => (
+                                    <FormField control={form.control} name="achievement" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Định cư</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            <FormLabel className="text-xs md:text-sm font-bold">Khoa bảng</FormLabel>
+                                            <FormControl><Textarea className="resize-none h-20 bg-white" {...field} /></FormControl>
                                         </FormItem>
                                     )} />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                    <FormField control={form.control} name="death_place" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">Nơi mất</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="burial_place" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs md:text-sm font-bold">An táng</FormLabel>
-                                            <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
-                                        </FormItem>
-                                    )} />
-                                </div>
-                            </TabsContent>
-                        </Tabs>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <FormField control={form.control} name="birth_place" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Sinh quán</FormLabel>
+                                                <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name="residence" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Định cư</FormLabel>
+                                                <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <FormField control={form.control} name="death_place" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">Nơi mất</FormLabel>
+                                                <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name="burial_place" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs md:text-sm font-bold">An táng</FormLabel>
+                                                <FormControl><Input className="bg-white h-10" {...field} /></FormControl>
+                                            </FormItem>
+                                        )} />
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </fieldset>
 
                         <div className="pt-4 border-t mt-6">
-                            <Button type="submit" disabled={loading} className="w-full h-11 text-base shadow-lg shadow-primary/20">
-                                {loading ? "Đang lưu..." : "Lưu thông tin"}
-                            </Button>
+                            {mode !== 'view' && (
+                                <Button type="submit" disabled={loading} className="w-full h-11 text-base shadow-lg shadow-primary/20">
+                                    {loading ? "Đang lưu..." : "Lưu thông tin"}
+                                </Button>
+                            )}
                         </div>
                     </form>
                 </Form>

@@ -207,7 +207,16 @@ function TreeBuilderContent({
                             <FileDown className="w-4 h-4" />
                             <span className="hidden md:inline">Xuất PDF</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2 bg-[#f3e7e7] text-[#1b0d0d] border-[#e5e1e1] h-8 md:h-9">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="hidden sm:flex items-center gap-2 bg-[#f3e7e7] text-[#1b0d0d] border-[#e5e1e1] h-8 md:h-9"
+                            onClick={() => {
+                                const shareUrl = `${window.location.origin}/share/${id}`
+                                navigator.clipboard.writeText(shareUrl)
+                                alert(`Đã sao chép liên kết chia sẻ: ${shareUrl}`)
+                            }}
+                        >
                             <Share2 className="w-4 h-4" />
                             <span className="hidden md:inline">Chia sẻ</span>
                         </Button>

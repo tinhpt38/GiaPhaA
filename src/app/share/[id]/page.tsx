@@ -1,0 +1,205 @@
+'use client'
+
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/utils/supabase/client'
+import TreeVisualizer from '@/components/tree/TreeVisualizer'
+import { Button } from '@/components/ui/button'
+import { ReactFlowProvider, useReactFlow } from '@xyflow/react'
+import {
+    ZoomIn,
+    ZoomOut,
+    Share2,
+    Locate,
+    BookOpen,
+} from 'lucide-react'
+
+function SharePageContent({
+    id,
+    tree,
+    members,
+    zoom,
+    setZoom,
+}: any) {
+    const reactFlowInstance = useReactFlow()
+
+    const handleZoomIn = () => {
+        if (reactFlowInstance) {
+            reactFlowInstance.zoomIn()
+            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
+        }
+    }
+
+    const handleZoomOut = () => {
+        if (reactFlowInstance) {
+            reactFlowInstance.zoomOut()
+            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
+        }
+    }
+
+    const handleFitView = () => {
+        if (reactFlowInstance) {
+            reactFlowInstance.fitView({ padding: 0.2, duration: 800 })
+            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
+        }
+    }
+
+    return (
+        <>
+            {/* Top Header */}
+            <header className="h-16 flex items-center justify-between border-b border-[#e5e1e1] bg-white px-3 md:px-6 z-30 shrink-0">
+                <div className="flex items-center gap-2 md:gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <div className="bg-primary p-1 md:p-1.5 rounded-lg text-white">
+                            <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-sm md:text-lg font-bold leading-tight truncate max-w-[120px] sm:max-w-none">{tree?.name || 'Gia Phả'}</h1>
+                            <p className="text-[10px] md:text-xs text-gray-500 font-medium truncate">Chế độ xem</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 md:gap-4">
+                    <div className="hidden md:flex items-center bg-white border border-[#e5e1e1] rounded-lg p-1">
+                        <button
+                            className="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"
+                            onClick={handleZoomIn}
+                            title="Phóng to"
+                        >
+                            <ZoomIn className="w-5 h-5" />
+                        </button>
+                        <span className="px-2 text-xs font-semibold min-w-[45px] text-center">{zoom}%</span>
+                        <button
+                            className="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"
+                            onClick={handleZoomOut}
+                            title="Thu nhỏ"
+                        >
+                            <ZoomOut className="w-5 h-5" />
+                        </button>
+                        <div className="w-[1px] h-6 bg-[#e5e1e1] mx-1" />
+                        <button
+                            className="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"
+                            onClick={handleFitView}
+                            title="Căn giữa"
+                        >
+                            <Locate className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="flex gap-1 md:gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="hidden sm:flex items-center gap-2 bg-[#f3e7e7] text-[#1b0d0d] border-[#e5e1e1] h-8 md:h-9"
+                            onClick={() => {
+                                navigator.clipboard.writeText(window.location.href)
+                                alert("Đã sao chép liên kết chia sẻ!")
+                            }}
+                        >
+                            <Share2 className="w-4 h-4" />
+                            <span className="hidden md:inline">Chia sẻ</span>
+                        </Button>
+                    </div>
+                </div>
+            </header>
+
+            <div className="flex flex-1 overflow-hidden relative">
+                <main className="flex-1 relative overflow-hidden"
+                    style={{
+                        backgroundImage: 'radial-gradient(#d1d5db 1px, transparent 1px)',
+                        backgroundSize: '20px 20px',
+                        backgroundColor: '#f8f6f6'
+                    }}
+                >
+                    <div className="w-full h-full relative">
+                        <TreeVisualizer
+                            initialMembers={members}
+                            readOnly={true}
+                        />
+                    </div>
+                </main>
+            </div>
+        </>
+    )
+}
+
+export default function ShareTreePage() {
+    const params = useParams()
+    const id = params.id as string
+    const [tree, setTree] = useState<any>(null)
+    const [members, setMembers] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [zoom, setZoom] = useState(100)
+
+    const supabase = createClient()
+
+    async function loadTreeData() {
+        const { data: treeData } = await supabase
+            .from('trees')
+            .select('*')
+            .eq('id', id)
+            .single()
+        setTree(treeData)
+
+        const { data: membersData } = await supabase
+            .from('members')
+            .select('*')
+            .eq('tree_id', id)
+
+        setMembers(membersData || [])
+        setLoading(false)
+    }
+
+    useEffect(() => {
+        if (!id) return
+
+        loadTreeData()
+
+        const channel = supabase
+            .channel('members-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'members',
+                    filter: `tree_id=eq.${id}`
+                },
+                (payload) => {
+                    console.log('Realtime update:', payload)
+                    loadTreeData()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [id, supabase])
+
+    if (loading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-[#f8f6f6]">
+                <div className="text-center">
+                    <BookOpen className="h-12 w-12 mx-auto mb-4 text-primary animate-pulse" />
+                    <p className="text-muted-foreground">Đang tải...</p>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="flex flex-col h-screen overflow-hidden bg-[#f8f6f6]">
+            <ReactFlowProvider>
+                <SharePageContent
+                    id={id}
+                    tree={tree}
+                    members={members}
+                    zoom={zoom}
+                    setZoom={setZoom}
+                />
+            </ReactFlowProvider>
+        </div>
+    )
+}
