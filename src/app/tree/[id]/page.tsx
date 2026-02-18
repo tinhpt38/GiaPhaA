@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import TreeVisualizer from '@/components/tree/TreeVisualizer'
+import { TreeSettings } from '@/components/tree/TreeSettings'
 import { MemberForm } from '@/components/tree/MemberForm'
 import { Button } from '@/components/ui/button'
 import { ReactFlowProvider, useReactFlow } from '@xyflow/react'
@@ -52,7 +53,8 @@ function TreeBuilderContent({
     handleNodeDragStop, // Add this prop
     zoom,
     setZoom,
-    loadTreeData
+    loadTreeData,
+    setTree // Add this prop
 }: any) {
     const reactFlowInstance = useReactFlow()
 
@@ -199,6 +201,7 @@ function TreeBuilderContent({
                     </div>
 
                     <div className="flex gap-1 md:gap-2">
+                        <TreeSettings tree={tree} onUpdate={setTree} />
                         <Button
                             onClick={handleExportPDF}
                             size="sm"
@@ -551,6 +554,7 @@ export default function TreeDetailPage() {
                     zoom={zoom}
                     setZoom={setZoom}
                     loadTreeData={loadTreeData}
+                    setTree={setTree} // Pass setTree
                 />
             </ReactFlowProvider>
         </div>

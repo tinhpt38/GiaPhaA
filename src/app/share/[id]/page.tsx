@@ -12,7 +12,10 @@ import {
     Share2,
     Locate,
     BookOpen,
+    Eye,
+    Heart,
 } from 'lucide-react'
+import { incrementTreeView, getTreeStats, toggleTreeVote, checkUserVote } from '@/lib/community'
 
 function SharePageContent({
     id,
@@ -20,6 +23,10 @@ function SharePageContent({
     members,
     zoom,
     setZoom,
+    viewCount,
+    voteCount,
+    hasVoted,
+    onVoteChange
 }: any) {
     const reactFlowInstance = useReactFlow()
 
@@ -55,12 +62,37 @@ function SharePageContent({
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-sm md:text-lg font-bold leading-tight truncate max-w-[120px] sm:max-w-none">{tree?.name || 'Gia Phả'}</h1>
-                            <p className="text-[10px] md:text-xs text-gray-500 font-medium truncate">Chế độ xem</p>
+                            <div className="flex items-center gap-2 text-[10px] md:text-xs text-gray-500 font-medium">
+                                <span className="flex items-center gap-1">
+                                    <Eye className="w-3 h-3" /> {new Intl.NumberFormat().format(viewCount || 0)}
+                                </span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1">
+                                    <Heart className="w-3 h-3 fill-red-500 text-red-500" /> {new Intl.NumberFormat().format(voteCount || 0)}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
+                    <Button
+                        variant={hasVoted ? "secondary" : "outline"}
+                        size="sm"
+                        className={`hidden sm:flex items-center gap-2 h-8 md:h-9 ${hasVoted ? 'bg-pink-100 text-pink-600 border-pink-200 hover:bg-pink-200' : 'border-[#e5e1e1]'}`}
+                        onClick={async () => {
+                            try {
+                                const result = await toggleTreeVote(id)
+                                onVoteChange(result.status === 'voted')
+                            } catch (e) {
+                                console.error(e)
+                                alert('Không thể thực hiện hành động này.')
+                            }
+                        }}
+                    >
+                        <Heart className={`w-4 h-4 ${hasVoted ? 'fill-current' : ''}`} />
+                        <span className="hidden md:inline">{hasVoted ? 'Đã yêu thích' : 'Yêu thích'}</span>
+                    </Button>
                     <div className="hidden md:flex items-center bg-white border border-[#e5e1e1] rounded-lg p-1">
                         <button
                             className="p-1.5 hover:bg-[#f3e7e7] rounded text-[#1b0d0d] transition-colors"
@@ -131,6 +163,9 @@ export default function ShareTreePage() {
     const [members, setMembers] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [zoom, setZoom] = useState(100)
+    const [viewCount, setViewCount] = useState(0)
+    const [voteCount, setVoteCount] = useState(0)
+    const [hasVoted, setHasVoted] = useState(false)
 
     const supabase = createClient()
 
@@ -149,7 +184,24 @@ export default function ShareTreePage() {
 
         setMembers(membersData || [])
         setLoading(false)
+
+        // Fetch stats
+        if (id) {
+            const stats = await getTreeStats(id)
+            setViewCount(stats.view_count)
+            setVoteCount(stats.vote_count)
+
+            const voted = await checkUserVote(id)
+            setHasVoted(voted)
+        }
     }
+
+    useEffect(() => {
+        // Increment view count on mount
+        if (id) {
+            incrementTreeView(id)
+        }
+    }, [id])
 
     useEffect(() => {
         if (!id) return
@@ -198,6 +250,13 @@ export default function ShareTreePage() {
                     members={members}
                     zoom={zoom}
                     setZoom={setZoom}
+                    viewCount={viewCount}
+                    voteCount={voteCount}
+                    hasVoted={hasVoted}
+                    onVoteChange={(voted: boolean) => {
+                        setHasVoted(voted)
+                        setVoteCount(prev => voted ? prev + 1 : prev - 1)
+                    }}
                 />
             </ReactFlowProvider>
         </div>

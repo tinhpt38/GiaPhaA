@@ -115,3 +115,115 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+
+-- ==========================================
+--  COMMUNITY FEATURES (Up-vote & Public)
+-- ==========================================
+
+-- 1. Update trees table
+alter table trees add column if not exists is_public boolean default false;
+alter table trees add column if not exists view_count bigint default 0;
+
+-- 2. Create tree_votes table
+create table if not exists tree_votes (
+  id uuid default gen_random_uuid() primary key,
+  tree_id uuid references trees(id) on delete cascade not null,
+  user_id uuid references profiles(id) on delete cascade,         -- Nullable for anonymous
+  anonymous_identifier text,                                      -- Nullable for logged-in
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  
+  -- Ensure one vote per user OR per device (anonymous)
+  constraint unique_vote_user unique nulls not distinct (tree_id, user_id),
+  constraint unique_vote_anon unique nulls not distinct (tree_id, anonymous_identifier),
+  
+  -- Ensure at least one identifier is present
+  constraint check_voter check (
+    (user_id is not null and anonymous_identifier is null) or 
+    (user_id is null and anonymous_identifier is not null)
+  )
+);
+
+-- RLS for tree_votes
+alter table tree_votes enable row level security;
+
+create policy "Anyone can view votes" on tree_votes
+  for select using (true);
+
+create policy "Anyone can insert votes" on tree_votes
+  for insert with check (true);
+  
+create policy "Users can delete their own votes" on tree_votes
+  for delete using (
+    (auth.uid() = user_id) or 
+    (anonymous_identifier is not null) -- Conceptual allow, logic handled in RPC/App
+  );
+
+
+-- 3. Functions
+
+-- Increment View Count
+create or replace function increment_tree_view(tree_uuid uuid)
+returns void as $$
+begin
+  update trees
+  set view_count = view_count + 1
+  where id = tree_uuid;
+end;
+$$ language plpgsql security definer;
+
+-- Vote Tree (Upsert-like logic handled by App or simple insert with error handling)
+-- Actually, let's make a safe vote function to handle the unique constraint gracefully or just let the app handle 409
+create or replace function toggle_tree_vote(
+  _tree_id uuid,
+  _user_id uuid default null,
+  _anon_id text default null
+)
+returns jsonb as $$
+declare
+  vote_exists boolean;
+begin
+  -- Check if vote exists
+  if _user_id is not null then
+    select exists(select 1 from tree_votes where tree_id = _tree_id and user_id = _user_id) into vote_exists;
+    
+    if vote_exists then
+      delete from tree_votes where tree_id = _tree_id and user_id = _user_id;
+      return jsonb_build_object('status', 'unvoted');
+    else
+      insert into tree_votes (tree_id, user_id) values (_tree_id, _user_id);
+      return jsonb_build_object('status', 'voted');
+    end if;
+    
+  elsif _anon_id is not null then
+    select exists(select 1 from tree_votes where tree_id = _tree_id and anonymous_identifier = _anon_id) into vote_exists;
+    
+    if vote_exists then
+      delete from tree_votes where tree_id = _tree_id and anonymous_identifier = _anon_id;
+      return jsonb_build_object('status', 'unvoted');
+    else
+      insert into tree_votes (tree_id, anonymous_identifier) values (_tree_id, _anon_id);
+      return jsonb_build_object('status', 'voted');
+    end if;
+  else
+    raise exception 'Must provide user_id or anonymous_identifier';
+  end if;
+end;
+$$ language plpgsql security definer;
+
+-- Get Tree Stats
+create or replace function get_tree_stats(tree_uuid uuid)
+returns jsonb as $$
+declare
+  _view_count bigint;
+  _vote_count bigint;
+begin
+  select view_count into _view_count from trees where id = tree_uuid;
+  select count(*) into _vote_count from tree_votes where tree_id = tree_uuid;
+  
+  return jsonb_build_object(
+    'view_count', coalesce(_view_count, 0),
+    'vote_count', _vote_count
+  );
+end;
+$$ language plpgsql security definer;

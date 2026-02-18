@@ -14,6 +14,7 @@ import {
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { FeaturedTrees } from '@/components/home/FeaturedTrees'
 
 export default function HomePage() {
   const supabase = createClient()
@@ -155,6 +156,9 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Featured Trees Section */}
+        <FeaturedTrees />
 
         {/* Why Use Section */}
         <section id="about" className="py-24 px-6 lg:px-20 bg-white">
