@@ -29,8 +29,9 @@ type MemberNodeData = {
 }
 
 function MemberNode({ data }: { data: MemberNodeData }) {
-    const isMale = data.gender === 'male'
-    const isFemale = data.gender === 'female'
+    const genderLower = (data.gender || "").toLowerCase()
+    const isMale = ['male', 'nam', 'trai'].includes(genderLower)
+    const isFemale = ['female', 'nữ', 'nu', 'gái'].includes(genderLower)
 
     // Check if deceased (explicit false or inferred from dates/posthumous name, but relying on is_alive is safest if provided)
     // Default to true if undefined, unless specifically told otherwise
@@ -93,7 +94,7 @@ function MemberNode({ data }: { data: MemberNodeData }) {
                     <DropdownMenuLabel>
                         {data.name}
                         <span className="text-xs font-normal text-muted-foreground ml-2">
-                            ({data.isRoot ? 'Thủy Tổ' : (isMale ? 'Nam' : 'Nữ')})
+                            ({data.isRoot ? 'Thủy Tổ' : (isMale ? 'Nam' : (isFemale ? 'Nữ' : 'Khác'))})
                         </span>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />

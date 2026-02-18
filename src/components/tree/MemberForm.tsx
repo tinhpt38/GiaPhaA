@@ -227,7 +227,13 @@ export function MemberForm({
                 nickname: editMember.nickname || "",
                 title: editMember.title || "",
                 posthumous_name: editMember.posthumous_name || "",
-                gender: (editMember.gender || "male").toLowerCase(),
+                gender: (function (g) {
+                    if (!g) return "male";
+                    const lower = String(g).trim().toLowerCase();
+                    if (['female', 'nữ', 'nu', 'f'].includes(lower)) return "female";
+                    if (['other', 'khác'].includes(lower)) return "other";
+                    return "male";
+                })(editMember.gender),
                 is_alive: editMember.is_alive ?? true,
                 generation: editMember.generation,
                 child_order: editMember.child_order,

@@ -267,8 +267,8 @@ function TreeBuilderContent({
                                 >
                                     <div className="font-medium text-[#1b0d0d] flex items-center justify-between">
                                         {member.full_name}
-                                        {member.gender === 'male' && <span className="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">Nam</span>}
-                                        {member.gender === 'female' && <span className="text-xs text-pink-500 bg-pink-50 px-1.5 py-0.5 rounded">Nữ</span>}
+                                        {['male', 'nam'].includes((member.gender || '').toLowerCase()) && <span className="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">Nam</span>}
+                                        {['female', 'nữ', 'nu'].includes((member.gender || '').toLowerCase()) && <span className="text-xs text-pink-500 bg-pink-50 px-1.5 py-0.5 rounded">Nữ</span>}
                                     </div>
                                     <div className="text-xs text-gray-500 mt-1 flex gap-2">
                                         {member.dob_solar && <span>📅 {member.dob_solar}</span>}
