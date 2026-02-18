@@ -58,11 +58,6 @@ export default function HomePage() {
             ) : (
               <>
                 <Link href="/login">
-                  <button className="hidden sm:block text-sm font-bold px-5 py-2.5 rounded-xl border border-primary/20 hover:bg-primary/5 transition-all text-primary">
-                    Đăng nhập
-                  </button>
-                </Link>
-                <Link href="/login">
                   <button className="bg-primary text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
                     Bắt đầu ngay
                   </button>
