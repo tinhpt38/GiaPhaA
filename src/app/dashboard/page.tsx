@@ -12,7 +12,10 @@ import {
     Search,
     Bell,
     Settings,
-    ChevronRight
+    ChevronRight,
+    Eye,
+    Heart,
+    User
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -35,6 +38,10 @@ interface Tree {
     name: string
     description: string
     created_at: string
+    view_count: number
+    anon_votes: number
+    user_votes: number
+    is_public: boolean
 }
 
 interface Profile {
@@ -80,15 +87,15 @@ export default function DashboardPage() {
         enabled: !!user?.id,
     })
 
-    // 3. Lấy danh sách Gia phả với Cache
+    // 3. Lấy danh sách Gia phả với Cache (Sử dụng RPC để lấy stats)
     const { data: treesData, isLoading: isTreesLoading } = useQuery({
         queryKey: ['trees', user?.id],
         queryFn: async () => {
-            const { data } = await supabase
-                .from('trees')
-                .select('*')
-                .eq('owner_id', user?.id)
-                .order('created_at', { ascending: false })
+            // Sử dụng RPC get_dashboard_stats
+            const { data, error } = await supabase
+                .rpc('get_dashboard_stats', { owner_uuid: user?.id })
+
+            if (error) throw error
             return data as Tree[]
         },
         enabled: !!user?.id,
@@ -235,9 +242,21 @@ export default function DashboardPage() {
                                             </div>
 
                                             <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                                                <span className="text-xs text-muted-foreground">
-                                                    {new Date(tree.created_at).toLocaleDateString('vi-VN')}
-                                                </span>
+                                                <div className="flex items-center gap-4 text-xs font-semibold text-gray-500">
+                                                    <div className="flex items-center gap-1.5" title="Lượt xem">
+                                                        <Eye className="w-3.5 h-3.5 text-blue-500" />
+                                                        {tree.view_count || 0}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5" title="Được yêu thích bởi thành viên">
+                                                        <User className="w-3.5 h-3.5 text-purple-500" />
+                                                        {tree.user_votes || 0}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5" title="Được yêu thích ẩn danh">
+                                                        <Heart className="w-3.5 h-3.5 text-red-500" />
+                                                        {tree.anon_votes || 0}
+                                                    </div>
+                                                </div>
+
                                                 <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-white transition-colors">
                                                     Xem <ChevronRight className="w-4 h-4 ml-1" />
                                                 </Button>
