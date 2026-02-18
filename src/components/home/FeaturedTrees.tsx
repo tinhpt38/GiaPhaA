@@ -1,20 +1,37 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getPublicTrees } from '@/lib/community'
+import { getPublicTrees, getUserVotedTreeIds, toggleTreeVote } from '@/lib/community'
 import Link from 'next/link'
-import { Eye, Heart, User } from 'lucide-react'
+import { Eye, Heart, User, ArrowRight, Share2 } from 'lucide-react'
 import Image from 'next/image'
 
 export function FeaturedTrees() {
     const [trees, setTrees] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [votedTreeIds, setVotedTreeIds] = useState<string[]>([])
 
     useEffect(() => {
         async function fetchTrees() {
             try {
                 const data = await getPublicTrees()
-                setTrees(data || [])
+                if (data) {
+                    // Add initial vote tracking state
+                    const treesWithInitState = data.map(t => ({
+                        ...t,
+                        has_initially_voted: false
+                    }))
+
+                    const ids = data.map(t => t.id)
+                    const votedIds = await getUserVotedTreeIds(ids)
+                    setVotedTreeIds(votedIds)
+
+                    // Mark which ones were initially voted to correct count display optimistically
+                    setTrees(treesWithInitState.map(t => ({
+                        ...t,
+                        has_initially_voted: votedIds.includes(t.id)
+                    })))
+                }
             } catch (error) {
                 console.error('Failed to load featured trees', error)
             } finally {
@@ -23,6 +40,34 @@ export function FeaturedTrees() {
         }
         fetchTrees()
     }, [])
+
+    const handleShare = (treeId: string) => {
+        const url = `${window.location.origin}/share/${treeId}`
+        navigator.clipboard.writeText(url)
+        alert('Đã sao chép liên kết chia sẻ!')
+    }
+
+    const handleVote = async (treeId: string) => {
+        // Optimistic update
+        const isVoted = votedTreeIds.includes(treeId)
+        if (isVoted) {
+            setVotedTreeIds(prev => prev.filter(id => id !== treeId))
+        } else {
+            setVotedTreeIds(prev => [...prev, treeId])
+        }
+
+        try {
+            await toggleTreeVote(treeId)
+        } catch (error) {
+            console.error('Failed to vote', error)
+            // Revert if failed
+            if (isVoted) {
+                setVotedTreeIds(prev => [...prev, treeId])
+            } else {
+                setVotedTreeIds(prev => prev.filter(id => id !== treeId))
+            }
+        }
+    }
 
     if (loading) {
         return (
@@ -43,6 +88,11 @@ export function FeaturedTrees() {
                     <h2 className="text-[#8B0000] font-bold text-sm tracking-[0.2em] uppercase mb-4">Cộng đồng</h2>
                     <h3 className="text-3xl lg:text-4xl font-black text-[#111621] leading-tight">Gia Phả Nổi Bật</h3>
                     <p className="text-slate-500 mt-4 text-lg">Khám phá các gia phả được chia sẻ bởi cộng đồng người dùng Gia Phả Việt.</p>
+                    <div className="mt-8">
+                        <Link href="/community" className="text-primary font-bold hover:underline flex items-center justify-center gap-2">
+                            Xem tất cả <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

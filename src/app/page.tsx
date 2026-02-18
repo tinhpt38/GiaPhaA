@@ -11,24 +11,22 @@ import {
   Heart,
   FileText
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { FeaturedTrees } from '@/components/home/FeaturedTrees'
 
 export default function HomePage() {
   const supabase = createClient()
-  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        router.push('/dashboard')
-      }
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
     }
     checkUser()
-  }, [supabase, router])
+  }, [supabase])
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-['Be_Vietnam_Pro',sans-serif]">
@@ -44,22 +42,33 @@ export default function HomePage() {
 
           <nav className="hidden md:flex items-center gap-10">
             <a className="text-sm font-semibold hover:text-primary transition-colors" href="#features">Tính năng</a>
+            <Link className="text-sm font-semibold hover:text-primary transition-colors" href="/community">Cộng đồng</Link>
             <a className="text-sm font-semibold hover:text-primary transition-colors" href="#about">Về chúng tôi</a>
             <a className="text-sm font-semibold hover:text-primary transition-colors" href="#pricing">Bảng giá</a>
             <a className="text-sm font-semibold hover:text-primary transition-colors" href="#guide">Hướng dẫn</a>
           </nav>
 
           <div className="flex items-center gap-4">
-            <Link href="/login">
-              <button className="hidden sm:block text-sm font-bold px-5 py-2.5 rounded-xl border border-primary/20 hover:bg-primary/5 transition-all text-primary">
-                Đăng nhập
-              </button>
-            </Link>
-            <Link href="/login">
-              <button className="bg-primary text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
-                Bắt đầu ngay
-              </button>
-            </Link>
+            {user ? (
+              <Link href="/dashboard">
+                <button className="bg-primary text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
+                  Vào Dashboard
+                </button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <button className="hidden sm:block text-sm font-bold px-5 py-2.5 rounded-xl border border-primary/20 hover:bg-primary/5 transition-all text-primary">
+                    Đăng nhập
+                  </button>
+                </Link>
+                <Link href="/login">
+                  <button className="bg-primary text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
+                    Bắt đầu ngay
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -157,9 +166,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Featured Trees Section */}
-        <FeaturedTrees />
-
         {/* Why Use Section */}
         <section id="about" className="py-24 px-6 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">
@@ -207,7 +213,7 @@ export default function HomePage() {
               <h3 className="text-3xl lg:text-4xl font-black text-[#111621] leading-tight">Tính năng nổi bật</h3>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200">
                 <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-primary/10 to-primary/5">
                   <Image
@@ -255,6 +261,22 @@ export default function HomePage() {
                   <p className="text-slate-500 text-sm">Công cụ soạn thảo chuyên nghiệp để viết nên những trang sử gia đình một cách sống động.</p>
                 </div>
               </div>
+
+              <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200">
+                <div className="rounded-2xl overflow-hidden aspect-[4/3] mb-6 relative group bg-gradient-to-br from-blue-500/10 to-purple-500/5">
+                  <Image
+                    src="/home-feature.jpg"
+                    alt="Kết nối cộng đồng"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                </div>
+                <div className="px-4 pb-4">
+                  <h4 className="text-xl font-bold mb-2">Kết nối cộng đồng</h4>
+                  <p className="text-slate-500 text-sm">Tham gia bình chọn, thả tim và chia sẻ những gia phả ấn tượng. Cùng nhau gìn giữ và lan tỏa giá trị truyền thống.</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -291,6 +313,9 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Featured Trees Section - Moved here */}
+        <FeaturedTrees />
 
         {/* CTA Section */}
         <section id="pricing" className="py-20 px-6 lg:px-20">

@@ -72,3 +72,25 @@ export async function getPublicTrees() {
     if (error) throw error
     return data
 }
+
+export async function getUserVotedTreeIds(treeIds: string[]) {
+    const { data: { user } } = await supabase.auth.getUser()
+    const anonymousId = getAnonymousId()
+
+    let query = supabase.from('tree_votes').select('tree_id').in('tree_id', treeIds)
+
+    if (user?.id) {
+        query = query.eq('user_id', user.id)
+    } else {
+        query = query.eq('anonymous_identifier', anonymousId)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+        console.error("Error fetching voted tree IDs:", error)
+        return []
+    }
+
+    return data.map(item => item.tree_id)
+}

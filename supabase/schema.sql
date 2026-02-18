@@ -134,15 +134,20 @@ create table if not exists tree_votes (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   
   -- Ensure one vote per user OR per device (anonymous)
-  constraint unique_vote_user unique nulls not distinct (tree_id, user_id),
-  constraint unique_vote_anon unique nulls not distinct (tree_id, anonymous_identifier),
+  -- constraint unique_vote_user unique nulls not distinct (tree_id, user_id),
+  -- constraint unique_vote_anon unique nulls not distinct (tree_id, anonymous_identifier),
   
   -- Ensure at least one identifier is present
   constraint check_voter check (
     (user_id is not null and anonymous_identifier is null) or 
     (user_id is null and anonymous_identifier is not null)
   )
+  )
 );
+
+-- Create partial unique indexes to allow multiple NULLs (for anonymous votes vs logged in votes)
+create unique index if not exists idx_tree_votes_user on tree_votes (tree_id, user_id) where user_id is not null;
+create unique index if not exists idx_tree_votes_anon on tree_votes (tree_id, anonymous_identifier) where anonymous_identifier is not null;
 
 -- RLS for tree_votes
 alter table tree_votes enable row level security;
