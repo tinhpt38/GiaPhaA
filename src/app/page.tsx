@@ -34,8 +34,8 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#D4AF37]/20 px-6 lg:px-20 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#8B0000] rounded-lg text-white">
-              <BookOpen className="w-6 h-6" />
+            <div className="w-10 h-10 relative">
+              <Image src="/logo.svg" alt="Gia Pha Viet Logo" fill className="object-contain" />
             </div>
             <h2 className="text-xl font-black tracking-tight text-[#8B0000]">GIA PHẢ VIỆT</h2>
           </div>
@@ -346,8 +346,8 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-[#8B0000] rounded-lg text-white scale-75 origin-left">
-                  <BookOpen className="w-6 h-6" />
+                <div className="w-10 h-10 relative">
+                  <Image src="/logo.svg" alt="Gia Pha Viet Logo" fill className="object-contain" />
                 </div>
                 <h2 className="text-xl font-black tracking-tight text-[#8B0000] uppercase">Gia Phả Việt</h2>
               </div>

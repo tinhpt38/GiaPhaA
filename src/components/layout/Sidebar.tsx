@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { BookOpen, Scroll, Users, BookMarked, Calendar } from 'lucide-react'
 
@@ -39,8 +40,13 @@ export function Sidebar() {
     return (
         <div className="hidden lg:flex h-screen w-64 flex-col border-r bg-white shrink-0">
             <div className="p-6 border-b">
-                <h2 className="text-2xl font-bold text-primary">Gia Phả Việt</h2>
-                <p className="text-sm text-muted-foreground">Giữ gìn cội nguồn, kết nối tương lai</p>
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="relative w-8 h-8">
+                        <Image src="/logo.svg" alt="Gia Pha Viet" fill className="object-contain" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-primary">Gia Phả Việt</h2>
+                </div>
+                <p className="text-xs text-muted-foreground">Giữ gìn cội nguồn, kết nối tương lai</p>
             </div>
 
             <nav className="flex-1 overflow-y-auto p-4">

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { usePathname, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -70,8 +71,8 @@ export function DashboardHeader() {
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 <div className="flex items-center gap-2 lg:gap-4 font-bold text-gray-800">
                     <Link href="/dashboard" className="lg:hidden">
-                        <div className="bg-primary p-1 rounded-lg text-white hover:scale-105 transition-transform cursor-pointer">
-                            <BookOpen className="w-5 h-5" />
+                        <div className="relative w-8 h-8 hover:scale-105 transition-transform cursor-pointer">
+                            <Image src="/logo.svg" alt="Home" fill className="object-contain" />
                         </div>
                     </Link>
                     <h2 className="text-lg lg:text-xl truncate max-w-[150px] sm:max-w-none">{getTitle()}</h2>
