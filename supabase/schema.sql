@@ -67,16 +67,40 @@ create table members (
   id uuid default gen_random_uuid() primary key,
   tree_id uuid references trees(id) on delete cascade not null,
   full_name text not null,
+  nickname text,
+  title text,
+  posthumous_name text,
   gender text check (gender in ('male', 'female', 'other')),
   relationship text check (relationship in ('root', 'spouse', 'child')),
   parent_id uuid references members(id), -- Self-referencing FK
   spouse_id uuid references members(id), -- Self-referencing FK
   is_alive boolean default true,
+  
+  -- Generational Info
+  generation integer,
+  child_order integer,
+
+  -- Dates
   dob_solar date,
   dob_lunar jsonb, -- { day: 1, month: 1, year: 2000, isLeap: false }
   dod_solar date,
   dod_lunar jsonb, -- { day: 1, month: 1, year: 2000, isLeap: false }
-  info jsonb default '{}'::jsonb, -- Bio, burial, images etc.
+  marriage_date_solar date,
+  marriage_date_lunar jsonb,
+
+  -- Details
+  image_url text,
+  job text,
+  achievement text,
+  residence text,
+  birth_place text,
+  death_place text,
+  burial_place text,
+  father_name text,
+  mother_name text,
+  spouse_name text,
+  
+  info jsonb default '{}'::jsonb, -- Additional flexible data
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

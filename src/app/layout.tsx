@@ -31,6 +31,7 @@ export const viewport = {
 
 import { TooltipProvider } from "@/components/ui/tooltip"
 import QueryProvider from "@/providers/query-provider"
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 
 export default function RootLayout({
   children,
@@ -40,6 +41,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={`${beVietnamPro.variable} ${geistMono.variable} font-sans antialiased`}>
+        <GoogleAnalytics GA_MEASUREMENT_ID={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || ''} />
         <QueryProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </QueryProvider>
