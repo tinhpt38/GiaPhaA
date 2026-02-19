@@ -246,28 +246,28 @@ export function MemberForm({
                 dod_solar: editMember.dod_solar || "",
 
                 // Split Dates - Birth
-                dob_solar_day: editMember.dob_solar_day,
-                dob_solar_month: editMember.dob_solar_month,
-                dob_solar_year: editMember.dob_solar_year,
-                dob_lunar_day: editMember.dob_lunar_day,
-                dob_lunar_month: editMember.dob_lunar_month,
-                dob_lunar_year: editMember.dob_lunar_year,
+                dob_solar_day: editMember.dob_solar_day || (editMember.dob_solar ? new Date(editMember.dob_solar).getDate() : undefined),
+                dob_solar_month: editMember.dob_solar_month || (editMember.dob_solar ? new Date(editMember.dob_solar).getMonth() + 1 : undefined),
+                dob_solar_year: editMember.dob_solar_year || (editMember.dob_solar ? new Date(editMember.dob_solar).getFullYear() : undefined),
+                dob_lunar_day: editMember.dob_lunar?.day || editMember.dob_lunar_day,
+                dob_lunar_month: editMember.dob_lunar?.month || editMember.dob_lunar_month,
+                dob_lunar_year: editMember.dob_lunar?.year || editMember.dob_lunar_year,
 
                 // Split Dates - Death
-                dod_solar_day: editMember.dod_solar_day,
-                dod_solar_month: editMember.dod_solar_month,
-                dod_solar_year: editMember.dod_solar_year,
-                dod_lunar_day: editMember.dod_lunar_day,
-                dod_lunar_month: editMember.dod_lunar_month,
-                dod_lunar_year: editMember.dod_lunar_year,
+                dod_solar_day: editMember.dod_solar_day || (editMember.dod_solar ? new Date(editMember.dod_solar).getDate() : undefined),
+                dod_solar_month: editMember.dod_solar_month || (editMember.dod_solar ? new Date(editMember.dod_solar).getMonth() + 1 : undefined),
+                dod_solar_year: editMember.dod_solar_year || (editMember.dod_solar ? new Date(editMember.dod_solar).getFullYear() : undefined),
+                dod_lunar_day: editMember.dod_lunar?.day || editMember.dod_lunar_day,
+                dod_lunar_month: editMember.dod_lunar?.month || editMember.dod_lunar_month,
+                dod_lunar_year: editMember.dod_lunar?.year || editMember.dod_lunar_year,
 
                 // Marriage
-                marriage_date_solar_day: editMember.marriage_date_solar_day,
-                marriage_date_solar_month: editMember.marriage_date_solar_month,
-                marriage_date_solar_year: editMember.marriage_date_solar_year,
-                marriage_date_lunar_day: editMember.marriage_date_lunar_day,
-                marriage_date_lunar_month: editMember.marriage_date_lunar_month,
-                marriage_date_lunar_year: editMember.marriage_date_lunar_year,
+                marriage_date_solar_day: editMember.marriage_date_solar_day || (editMember.marriage_date_solar ? new Date(editMember.marriage_date_solar).getDate() : undefined),
+                marriage_date_solar_month: editMember.marriage_date_solar_month || (editMember.marriage_date_solar ? new Date(editMember.marriage_date_solar).getMonth() + 1 : undefined),
+                marriage_date_solar_year: editMember.marriage_date_solar_year || (editMember.marriage_date_solar ? new Date(editMember.marriage_date_solar).getFullYear() : undefined),
+                marriage_date_lunar_day: editMember.marriage_date_lunar?.day || editMember.marriage_date_lunar_day,
+                marriage_date_lunar_month: editMember.marriage_date_lunar?.month || editMember.marriage_date_lunar_month,
+                marriage_date_lunar_year: editMember.marriage_date_lunar?.year || editMember.marriage_date_lunar_year,
 
                 job: editMember.job || "",
                 achievement: editMember.achievement || "",
@@ -361,6 +361,48 @@ export function MemberForm({
         } else {
             if (!payload.dod_solar) payload.dod_solar = null
         }
+
+        // Construct Lunar Date Objects
+        if (payload.dob_lunar_day && payload.dob_lunar_month && payload.dob_lunar_year) {
+            payload.dob_lunar = {
+                day: payload.dob_lunar_day,
+                month: payload.dob_lunar_month,
+                year: payload.dob_lunar_year,
+                isLeap: false // Default to false for now, UI doesn't support leap month selection yet
+            }
+        } else {
+            payload.dob_lunar = null
+        }
+
+        if (payload.dod_lunar_day && payload.dod_lunar_month && payload.dod_lunar_year) {
+            payload.dod_lunar = {
+                day: payload.dod_lunar_day,
+                month: payload.dod_lunar_month,
+                year: payload.dod_lunar_year,
+                isLeap: false
+            }
+        } else {
+            payload.dod_lunar = null
+        }
+
+        if (payload.marriage_date_lunar_day && payload.marriage_date_lunar_month && payload.marriage_date_lunar_year) {
+            payload.marriage_date_lunar = {
+                day: payload.marriage_date_lunar_day,
+                month: payload.marriage_date_lunar_month,
+                year: payload.marriage_date_lunar_year,
+                isLeap: false
+            }
+        } else {
+            payload.marriage_date_lunar = null
+        }
+
+        // Clean up temporary flattened fields before sending to Supabase (optional but cleaner)
+        delete payload.dob_solar_day; delete payload.dob_solar_month; delete payload.dob_solar_year;
+        delete payload.dob_lunar_day; delete payload.dob_lunar_month; delete payload.dob_lunar_year;
+        delete payload.dod_solar_day; delete payload.dod_solar_month; delete payload.dod_solar_year;
+        delete payload.dod_lunar_day; delete payload.dod_lunar_month; delete payload.dod_lunar_year;
+        delete payload.marriage_date_solar_day; delete payload.marriage_date_solar_month; delete payload.marriage_date_solar_year;
+        delete payload.marriage_date_lunar_day; delete payload.marriage_date_lunar_month; delete payload.marriage_date_lunar_year;
 
         let error = null
         let successResult = null

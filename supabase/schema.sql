@@ -75,6 +75,7 @@ create table members (
   dob_solar date,
   dob_lunar jsonb, -- { day: 1, month: 1, year: 2000, isLeap: false }
   dod_solar date,
+  dod_lunar jsonb, -- { day: 1, month: 1, year: 2000, isLeap: false }
   info jsonb default '{}'::jsonb, -- Bio, burial, images etc.
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

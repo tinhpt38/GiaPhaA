@@ -3,13 +3,18 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { BookOpen, Scroll, Users, BookMarked } from 'lucide-react'
+import { BookOpen, Scroll, Users, BookMarked, Calendar } from 'lucide-react'
 
 const menuItems = [
     {
         title: 'Gia phả của tôi',
         href: '/dashboard',
         icon: BookOpen,
+    },
+    {
+        title: 'Lịch Nhắc',
+        href: '/dashboard/events',
+        icon: Calendar,
     },
     {
         title: 'Gia phả mẫu',
