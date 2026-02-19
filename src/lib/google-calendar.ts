@@ -50,25 +50,31 @@ export const loadGoogleScripts = (callback: () => void) => {
     document.body.appendChild(script2);
 }
 
-export const syncEventsToGoogleCalendar = async (events: CalendarEvent[]) => {
+export const syncEventsToGoogleCalendar = async (events: CalendarEvent[]): Promise<number> => {
     return new Promise((resolve, reject) => {
         // Ensure scripts are loaded
         if (!gapiInited || !gisInited) {
-            loadGoogleScripts(async () => {
-                await executeSync(events).then(resolve).catch(reject)
+            loadGoogleScripts(() => {
+                executeSync(events, resolve, reject)
             })
         } else {
-            executeSync(events).then(resolve).catch(reject)
+            executeSync(events, resolve, reject)
         }
     });
 }
 
-const executeSync = async (events: CalendarEvent[]) => {
+const executeSync = (events: CalendarEvent[], resolve: (count: number) => void, reject: (err: any) => void) => {
     tokenClient.callback = async (resp: any) => {
         if (resp.error) {
-            throw resp;
+            reject(resp);
+            return;
         }
-        await createCalendarEvents(events);
+        try {
+            const count = await createCalendarEvents(events);
+            resolve(count);
+        } catch (e) {
+            reject(e);
+        }
     };
 
     if (window.gapi.client.getToken() === null) {
@@ -81,7 +87,7 @@ const executeSync = async (events: CalendarEvent[]) => {
     }
 }
 
-const createCalendarEvents = async (events: CalendarEvent[]) => {
+const createCalendarEvents = async (events: CalendarEvent[]): Promise<number> => {
     const batch = window.gapi.client.newBatch();
 
     // We can create a dedicated calendar or use 'primary'
@@ -140,7 +146,7 @@ const createCalendarEvents = async (events: CalendarEvent[]) => {
         }
     }
 
-    alert(`Đã đồng bộ ${createdCount} sự kiện mới lên Google Calendar!`);
+    return createdCount;
 }
 
 // Type definitions for window
