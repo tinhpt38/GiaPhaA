@@ -173,7 +173,7 @@ export default function LoginPage() {
                     </div>
 
                     <p className="text-center text-xs text-slate-400">
-                        Bằng việc tiếp tục, bạn đồng ý với <Link href="#" className="underline hover:text-slate-600">Điều khoản</Link> và <Link href="#" className="underline hover:text-slate-600">Chính sách</Link> của chúng tôi.
+                        Bằng việc tiếp tục, bạn đồng ý với <Link href="/terms" className="underline hover:text-slate-600">Điều khoản</Link> và <Link href="/privacy" className="underline hover:text-slate-600">Chính sách</Link> của chúng tôi.
                     </p>
                 </div>
             </div>

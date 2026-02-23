@@ -377,8 +377,8 @@ export default function HomePage() {
             <div>
               <h4 className="font-bold mb-6">Pháp lý</h4>
               <ul className="flex flex-col gap-4 text-sm text-slate-500">
-                <li><a className="hover:text-primary transition-colors" href="#">Điều khoản dịch vụ</a></li>
-                <li><a className="hover:text-primary transition-colors" href="#">Chính sách bảo mật</a></li>
+                <li><Link className="hover:text-primary transition-colors" href="/terms">Điều khoản dịch vụ</Link></li>
+                <li><Link className="hover:text-primary transition-colors" href="/privacy">Chính sách bảo mật</Link></li>
               </ul>
             </div>
           </div>

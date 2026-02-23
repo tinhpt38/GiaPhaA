@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Settings, Globe, Lock } from 'lucide-react'
+import { Settings, Globe, Lock, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -111,6 +111,15 @@ export function TreeSettings({ tree, onUpdate }: TreeSettingsProps) {
                             onCheckedChange={setIsPublic}
                         />
                     </div>
+                    {isPublic && (
+                        <div className="bg-orange-50 border-l-4 border-orange-500 p-4 text-sm text-orange-800 rounded-md flex items-start gap-3 mt-2">
+                            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="font-bold mb-1">Cảnh báo rò rỉ dữ liệu</p>
+                                <p>Khi bạn bật "Công khai", mọi thông tin từ sơ đồ, thành viên, năm sinh đến hình ảnh sẽ được hiển thị công khai trên internet và Cộng đồng. Vui lòng đảm bảo các thành viên đồng ý trước khi chia sẻ.</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
