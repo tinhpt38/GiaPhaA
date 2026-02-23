@@ -45,7 +45,7 @@ export default function ChangelogPage() {
                     </ReactMarkdown>
                 </div>
 
-                <div className="mt-16 bg-slate-50 border border-slate-200 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                {/* <div className="mt-16 bg-slate-50 border border-slate-200 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <h3 className="font-bold text-xl text-slate-800 mb-2">Đóng góp & Báo cáo lỗi nhanh?</h3>
                         <p className="text-slate-600">Mọi báo cáo lỗi hoặc chia sẻ ý tưởng tính năng đều sẽ được quản trị viên xử lý sớm nhất. Đừng ngần ngại cho chúng tôi biết, xin trân trọng cảm ơn.</p>
@@ -56,7 +56,7 @@ export default function ChangelogPage() {
                     >
                         <Mail className="w-5 h-5" /> Gửi phản hồi
                     </a>
-                </div>
+                </div> */}
             </div>
         </div>
     )

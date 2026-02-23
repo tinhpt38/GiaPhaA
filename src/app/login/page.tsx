@@ -100,7 +100,7 @@ export default function LoginPage() {
                                 <div className="p-1.5 bg-white/10 rounded-md">
                                     <Mail className="w-4 h-4" />
                                 </div>
-                                Báo lỗi / Gửi ý kiến
+                                tinhp.wk@gmail.com
                             </a>
                         </div>
                     </div>
@@ -167,10 +167,7 @@ export default function LoginPage() {
                             </div>
                             <div>
                                 <p className="font-bold text-slate-800">Phan Trung Tính</p>
-                                <div className="text-xs text-slate-500 mt-1 space-y-1">
-                                    <p>SĐT: 0379.080.398</p>
-                                    <p>Báo lỗi: <a href="mailto:tinhp.wk@gmail.com" className="text-[#8B0000] hover:underline font-semibold">tinhp.wk@gmail.com</a></p>
-                                </div>
+                                <p className="text-xs text-slate-500">tinhp.wk@gmail.com • 0379.080.398</p>
                             </div>
                         </div>
                     </div>

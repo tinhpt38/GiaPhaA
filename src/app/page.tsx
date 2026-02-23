@@ -370,7 +370,7 @@ export default function HomePage() {
               <ul className="flex flex-col gap-4 text-sm text-slate-500">
                 <li><a className="hover:text-primary transition-colors" href="#guide">Hướng dẫn sử dụng</a></li>
                 <li><Link className="hover:text-primary transition-colors" href="/changelog">Nhật ký thay đổi (Changelog)</Link></li>
-                <li><a href="mailto:tinhp.wk@gmail.com" className="hover:text-primary transition-colors flex items-center gap-2">Báo cáo lỗi / Liên hệ</a></li>
+                {/* <li><a href="mailto:tinhp.wk@gmail.com" className="hover:text-primary transition-colors flex items-center gap-2">Báo cáo lỗi / Liên hệ</a></li> */}
               </ul>
             </div>
 
