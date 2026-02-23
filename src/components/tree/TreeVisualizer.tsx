@@ -21,7 +21,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { hierarchy, tree, HierarchyPointNode } from 'd3-hierarchy'
 import MemberNode from './MemberNode'
-import { AlignCenter, AlignEndHorizontal, AlignEndVertical, AlignHorizontalDistributeCenter, AlignStartHorizontal, AlignStartVertical, AlignVerticalDistributeCenter } from 'lucide-react'
+import { AlignCenter, AlignEndHorizontal, AlignEndVertical, AlignHorizontalDistributeCenter, AlignStartHorizontal, AlignStartVertical, AlignVerticalDistributeCenter, BookOpen } from 'lucide-react'
 import { Button } from '../ui/button'
 
 // Constants
@@ -545,6 +545,20 @@ export default function TreeVisualizer({
                 <Controls />
                 <MiniMap zoomable pannable />
                 <Background gap={12} size={1} color="#f1f1f1" />
+
+                {!readOnly && (
+                    <Panel position="top-left" className="bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow border border-primary/20 max-w-[250px] pointer-events-none">
+                        <h4 className="font-bold text-[#8B0000] text-sm mb-1 flex items-center gap-1">
+                            <BookOpen className="w-4 h-4" /> Hướng dẫn
+                        </h4>
+                        <ul className="text-xs text-slate-600 space-y-1 list-disc pl-4">
+                            <li>Nhấn và kéo màn hình để dịch chuyển.</li>
+                            <li>Kéo thả thành viên để đổi vị trí.</li>
+                            <li>Bấm vào thành viên để xem/sửa chi tiết.</li>
+                            <li>Giữ Shift + Kéo thả chuột để chọn và căn chỉnh nhiều người.</li>
+                        </ul>
+                    </Panel>
+                )}
 
                 {!readOnly && selectedNodes.length > 1 && (
                     <Panel position="top-right" className="bg-white p-2 rounded-lg shadow-xl border border-gray-200 flex gap-1">
