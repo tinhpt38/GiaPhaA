@@ -398,11 +398,25 @@ export default function TreeDetailPage() {
     const supabase = createClient()
 
     async function loadTreeData() {
-        const { data: treeData } = await supabase
+        const { data: { user } } = await supabase.auth.getUser()
+
+        const { data: treeData, error } = await supabase
             .from('trees')
             .select('*')
             .eq('id', id)
             .single()
+
+        if (error || !treeData) {
+            router.push('/dashboard')
+            return
+        }
+
+        // Only owner can access /tree/[id]
+        if (treeData.owner_id !== user?.id) {
+            router.push('/dashboard')
+            return
+        }
+
         setTree(treeData)
 
         const { data: membersData } = await supabase

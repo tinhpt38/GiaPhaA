@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import TreeVisualizer from '@/components/tree/TreeVisualizer'
@@ -158,6 +158,7 @@ function SharePageContent({
 
 export default function ShareTreePage() {
     const params = useParams()
+    const router = useRouter()
     const id = params.id as string
     const [tree, setTree] = useState<any>(null)
     const [members, setMembers] = useState<any[]>([])
@@ -170,11 +171,25 @@ export default function ShareTreePage() {
     const supabase = createClient()
 
     async function loadTreeData() {
-        const { data: treeData } = await supabase
+        const { data: { user } } = await supabase.auth.getUser()
+
+        const { data: treeData, error } = await supabase
             .from('trees')
             .select('*')
             .eq('id', id)
             .single()
+
+        if (error || !treeData) {
+            router.push('/')
+            return
+        }
+
+        // Only allow if public or user is the owner
+        if (!treeData.is_public && treeData.owner_id !== user?.id) {
+            router.push('/')
+            return
+        }
+
         setTree(treeData)
 
         const { data: membersData } = await supabase
