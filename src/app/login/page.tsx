@@ -100,7 +100,7 @@ export default function LoginPage() {
                                 <div className="p-1.5 bg-white/10 rounded-md">
                                     <Mail className="w-4 h-4" />
                                 </div>
-                                tinhp.wk@gmail.com
+                                Báo lỗi / Gửi ý kiến
                             </a>
                         </div>
                     </div>
@@ -167,13 +167,16 @@ export default function LoginPage() {
                             </div>
                             <div>
                                 <p className="font-bold text-slate-800">Phan Trung Tính</p>
-                                <p className="text-xs text-slate-500">tinhp.wk@gmail.com • 0379.080.398</p>
+                                <div className="text-xs text-slate-500 mt-1 space-y-1">
+                                    <p>SĐT: 0379.080.398</p>
+                                    <p>Báo lỗi: <a href="mailto:tinhp.wk@gmail.com" className="text-[#8B0000] hover:underline font-semibold">tinhp.wk@gmail.com</a></p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <p className="text-center text-xs text-slate-400">
-                        Bằng việc tiếp tục, bạn đồng ý với <Link href="/terms" className="underline hover:text-slate-600">Điều khoản</Link> và <Link href="/privacy" className="underline hover:text-slate-600">Chính sách</Link> của chúng tôi.
+                        Bằng việc tiếp tục, bạn đồng ý với <Link href="/terms" className="underline hover:text-slate-600">Điều khoản</Link>, <Link href="/privacy" className="underline hover:text-slate-600">Chính sách</Link> và xem <Link href="/changelog" className="underline hover:text-slate-600">Nhật ký cập nhật</Link>.
                     </p>
                 </div>
             </div>

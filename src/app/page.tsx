@@ -369,8 +369,8 @@ export default function HomePage() {
               <h4 className="font-bold mb-6">Hỗ trợ</h4>
               <ul className="flex flex-col gap-4 text-sm text-slate-500">
                 <li><a className="hover:text-primary transition-colors" href="#guide">Hướng dẫn sử dụng</a></li>
-                <li><Link className="hover:text-primary transition-colors" href="/dashboard/generations">Hệ thống thế hệ</Link></li>
-                <li><Link className="hover:text-primary transition-colors" href="/dashboard/prayers">Văn khấn</Link></li>
+                <li><Link className="hover:text-primary transition-colors" href="/changelog">Nhật ký thay đổi (Changelog)</Link></li>
+                <li><a href="mailto:tinhp.wk@gmail.com" className="hover:text-primary transition-colors flex items-center gap-2">Báo cáo lỗi / Liên hệ</a></li>
               </ul>
             </div>
 
