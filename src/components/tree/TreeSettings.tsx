@@ -11,6 +11,16 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -30,6 +40,7 @@ export function TreeSettings({ tree, onUpdate }: TreeSettingsProps) {
     const [name, setName] = useState(tree?.name || '')
     const [description, setDescription] = useState(tree?.description || '')
     const [isPublic, setIsPublic] = useState(tree?.is_public || false)
+    const [showConfirm, setShowConfirm] = useState(false)
     const supabase = createClient()
     const router = useRouter()
 
@@ -58,6 +69,14 @@ export function TreeSettings({ tree, onUpdate }: TreeSettingsProps) {
             alert('Có lỗi xảy ra, vui lòng thử lại.')
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleTogglePublic = (checked: boolean) => {
+        if (checked) {
+            setShowConfirm(true)
+        } else {
+            setIsPublic(false)
         }
     }
 
@@ -108,7 +127,7 @@ export function TreeSettings({ tree, onUpdate }: TreeSettingsProps) {
                         </div>
                         <Switch
                             checked={isPublic}
-                            onCheckedChange={setIsPublic}
+                            onCheckedChange={handleTogglePublic}
                         />
                     </div>
                     {isPublic && (
@@ -128,6 +147,21 @@ export function TreeSettings({ tree, onUpdate }: TreeSettingsProps) {
                     </Button>
                 </DialogFooter>
             </DialogContent>
+
+            <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Xác nhận Công khai Gia phả</AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-600">
+                            Khi bạn bật <strong>Công khai</strong>, mọi thông tin bao gồm sơ đồ, thành viên, năm sinh, hình ảnh sẽ được xuất bản công khai trên Internet và mục Cộng đồng. Vui lòng đảm bảo các thành viên đồng ý trước khi chia sẻ.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowConfirm(false)}>Hủy</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { setIsPublic(true); setShowConfirm(false); }} className="bg-orange-600 hover:bg-orange-700">Đồng ý công khai</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Dialog>
     )
 }
