@@ -24,12 +24,23 @@ import {
     ChevronLeft,
     ChevronRight,
     Settings,
-    Trash2
+    Trash2,
+    FileJson,
+    FileSpreadsheet,
+    ChevronDown,
+    Download
 } from 'lucide-react'
 import Link from 'next/link'
 import { toPng } from 'html-to-image'
 import { jsPDF } from 'jspdf'
 import { useRouter } from 'next/navigation'
+import * as XLSX from 'xlsx'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface SelectedState {
     mode: 'view' | 'create' | 'edit'
@@ -94,7 +105,7 @@ function TreeBuilderContent({
             const dataUrl = await toPng(element, {
                 backgroundColor: '#f8f6f6',
                 quality: 1,
-                pixelRatio: 2, // Tăng chất lượng ảnh
+                pixelRatio: 3, // Tăng chất lượng ảnh lên mức 3 cho in ấn sắc nét
                 filter: (node) => {
                     // Loại bỏ các nút điều khiển của ReactFlow khỏi ảnh chụp
                     return !node.classList?.contains('react-flow__controls') &&
@@ -105,15 +116,43 @@ function TreeBuilderContent({
             const pdf = new jsPDF({
                 orientation: 'landscape',
                 unit: 'px',
-                format: [element.offsetWidth, element.offsetHeight]
+                format: [element.offsetWidth * 3, element.offsetHeight * 3]
             })
 
-            pdf.addImage(dataUrl, 'PNG', 0, 0, element.offsetWidth, element.offsetHeight)
+            pdf.addImage(dataUrl, 'PNG', 0, 0, element.offsetWidth * 3, element.offsetHeight * 3)
             pdf.save(`Gia_Pha_${originalTitle.replace(/\s+/g, '_')}.pdf`)
         } catch (error) {
             console.error('Error exporting PDF:', error)
             alert('Có lỗi xảy ra khi xuất PDF. Vui lòng thử lại.')
         }
+    }
+
+    const handleExportJSON = () => {
+        const data = JSON.stringify(members, null, 2)
+        const blob = new Blob([data], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `Gia_Pha_${(tree?.name || 'Data').replace(/\s+/g, '_')}.json`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    const handleExportExcel = () => {
+        const data = members.map((m: any) => ({
+            'Họ và tên': m.full_name,
+            'Giới tính': m.gender === 'male' ? 'Nam' : m.gender === 'female' ? 'Nữ' : 'Khác',
+            'Ngày sinh': m.dob_solar || '',
+            'Ngày mất': m.dod_solar || '',
+            'Thế hệ': m.generation || '',
+            'Quan hệ': m.relationship === 'root' ? 'Thủy tổ' : m.relationship === 'spouse' ? 'Vợ/Chồng' : 'Con cái',
+            'Nghề nghiệp': m.job || '',
+            'Nơi cư trú': m.residence || ''
+        }))
+        const ws = XLSX.utils.json_to_sheet(data)
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, "DanhSachThanhVien")
+        XLSX.writeFile(wb, `Gia_Pha_${(tree?.name || 'Data').replace(/\s+/g, '_')}.xlsx`)
     }
 
     const handleResetLayout = async () => {
@@ -202,14 +241,32 @@ function TreeBuilderContent({
 
                     <div className="flex gap-1 md:gap-2">
                         <TreeSettings tree={tree} onUpdate={setTree} />
-                        <Button
-                            onClick={handleExportPDF}
-                            size="sm"
-                            className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90 h-8 md:h-9"
-                        >
-                            <FileDown className="w-4 h-4" />
-                            <span className="hidden md:inline">Xuất PDF</span>
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    size="sm"
+                                    className="flex items-center gap-2 bg-primary text-white hover:bg-primary/90 h-8 md:h-9"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span className="hidden md:inline">Tải xuống</span>
+                                    <ChevronDown className="w-3 h-3 ml-1" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 bg-white z-50">
+                                <DropdownMenuItem onClick={handleExportPDF} className="cursor-pointer gap-2">
+                                    <FileDown className="w-4 h-4 text-red-500" />
+                                    Xuất file sơ đồ (PDF)
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleExportExcel} className="cursor-pointer gap-2">
+                                    <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                                    Xuất danh sách (Excel)
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleExportJSON} className="cursor-pointer gap-2">
+                                    <FileJson className="w-4 h-4 text-blue-500" />
+                                    Xuất dữ liệu thô (JSON)
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                             variant="outline"
                             size="sm"
