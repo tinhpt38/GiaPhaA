@@ -291,8 +291,31 @@ export function MemberForm({
                 if (parent) {
                     defaultGen = (parent.generation || 0) + 1
 
-                    if (parent.gender === 'male') fatherName = parent.full_name
-                    else if (parent.gender === 'female') motherName = parent.full_name
+                    if (parent.gender === 'male') {
+                        fatherName = parent.full_name
+                        // Try to find if he has exactly ONE wife
+                        // A wife will have spouse_id = parent.id OR parent has spouse_id = wife.id (rare for male but possible)
+                        const wives = existingMembers.filter(m => m.spouse_id === parent.id || (parent.spouse_id && parent.spouse_id === m.id))
+                        if (wives.length === 1 && wives[0].gender === 'female') {
+                            motherName = wives[0].full_name
+                        }
+                    }
+                    else if (parent.gender === 'female') {
+                        motherName = parent.full_name
+                        // Find her husband. Usually female members have spouse_id pointing to the husband
+                        if (parent.spouse_id) {
+                            const husband = existingMembers.find(m => m.id === parent.spouse_id)
+                            if (husband) {
+                                fatherName = husband.full_name
+                            }
+                        } else {
+                            // Or husband points to her
+                            const husband = existingMembers.find(m => m.spouse_id === parent.id && m.gender === 'male')
+                            if (husband) {
+                                fatherName = husband.full_name
+                            }
+                        }
+                    }
 
                     // Calculate next child order
                     const siblings = existingMembers.filter(m => m.parent_id === parentId)
