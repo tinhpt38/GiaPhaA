@@ -31,6 +31,7 @@ import {
     Download
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { toPng } from 'html-to-image'
 import { jsPDF } from 'jspdf'
 import { useRouter } from 'next/navigation'
@@ -182,8 +183,8 @@ function TreeBuilderContent({
             <header className="h-16 flex items-center justify-between border-b border-[#e5e1e1] bg-white px-3 md:px-6 z-30 shrink-0">
                 <div className="flex items-center gap-2 md:gap-3">
                     <Link href="/dashboard" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
-                        <div className="bg-primary p-1 md:p-1.5 rounded-lg text-white">
-                            <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
+                        <div className="bg-[#8B0000]/10 p-1 md:p-1.5 rounded-lg border border-[#8B0000]/20 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 relative">
+                            <Image src="/logo_v2.png" alt="Gia Pha Viet" fill className="object-contain p-1" />
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-sm md:text-lg font-bold leading-tight truncate max-w-[120px] sm:max-w-none">{tree?.name || 'Gia Phả'}</h1>
@@ -398,7 +399,9 @@ function TreeBuilderContent({
                 >
                     {members.length === 0 ? (
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <BookOpen className="h-16 w-16 text-gray-300 mb-4" />
+                            <div className="relative h-20 w-20 mb-4 opacity-20 grayscale">
+                                <Image src="/logo_v2.png" alt="Empty Tree" fill className="object-contain" />
+                            </div>
                             <p className="mb-4 text-gray-500 text-lg font-medium">Gia phả chưa có thành viên nào</p>
                             <Button
                                 onClick={() => setSelectedState({ mode: 'create', parentId: undefined })}
@@ -600,7 +603,9 @@ export default function TreeDetailPage() {
         return (
             <div className="flex h-screen items-center justify-center bg-[#f8f6f6]">
                 <div className="text-center">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 text-primary animate-pulse" />
+                    <div className="relative h-16 w-16 mx-auto mb-4 animate-pulse drop-shadow-md">
+                        <Image src="/logo_v2.png" alt="Loading" fill className="object-contain" />
+                    </div>
                     <p className="text-muted-foreground">Đang tải...</p>
                 </div>
             </div>
