@@ -42,7 +42,7 @@ export function Sidebar() {
             <div className="p-6 border-b">
                 <div className="flex items-center gap-2 mb-1">
                     <div className="relative w-8 h-8">
-                        <Image src="/logo.svg" alt="Gia Pha Viet" fill className="object-contain" />
+                        <Image src="/logo_v2.png" alt="Gia Pha Viet" fill className="object-contain" />
                     </div>
                     <h2 className="text-2xl font-bold text-primary">Gia Phả Việt</h2>
                 </div>

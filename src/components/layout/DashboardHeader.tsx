@@ -72,7 +72,7 @@ export function DashboardHeader() {
                 <div className="flex items-center gap-2 lg:gap-4 font-bold text-gray-800">
                     <Link href="/dashboard" className="lg:hidden">
                         <div className="relative w-8 h-8 hover:scale-105 transition-transform cursor-pointer">
-                            <Image src="/logo.svg" alt="Home" fill className="object-contain" />
+                            <Image src="/logo_v2.png" alt="Home" fill className="object-contain" />
                         </div>
                     </Link>
                     <h2 className="text-lg lg:text-xl truncate max-w-[150px] sm:max-w-none">{getTitle()}</h2>

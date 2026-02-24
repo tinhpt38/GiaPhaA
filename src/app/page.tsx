@@ -35,7 +35,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 relative">
-              <Image src="/logo.svg" alt="Gia Pha Viet Logo" fill className="object-contain" />
+              <Image src="/logo_v2.png" alt="Gia Pha Viet Logo" fill className="object-contain" />
             </div>
             <h2 className="text-xl font-black tracking-tight text-[#8B0000]">GIA PHẢ VIỆT</h2>
           </div>
@@ -347,7 +347,7 @@ export default function HomePage() {
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 relative">
-                  <Image src="/logo.svg" alt="Gia Pha Viet Logo" fill className="object-contain" />
+                  <Image src="/logo_v2.png" alt="Gia Pha Viet Logo" fill className="object-contain" />
                 </div>
                 <h2 className="text-xl font-black tracking-tight text-[#8B0000] uppercase">Gia Phả Việt</h2>
               </div>

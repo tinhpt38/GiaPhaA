@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   title: "Gia Phả Việt - Gìn giữ nguồn cội, kết nối tương lai",
   description: "Nền tảng hiện đại giúp bạn tạo lập, lưu trữ và chia sẻ phả hệ gia đình một cách trân trọng và chuyên nghiệp nhất",
   icons: {
-    icon: "/favicon.svg",
-    apple: "/logo.svg",
+    icon: "/logo_v2.png",
+    apple: "/logo_v2.png",
   },
 };
 
