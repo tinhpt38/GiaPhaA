@@ -5,21 +5,12 @@ import { getPublicTrees } from '@/lib/community'
 import Link from 'next/link'
 import { Eye, Heart, User, BookOpen, History, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
-import { createClient } from '@/utils/supabase/client'
+import { Navbar } from '@/components/layout/Navbar'
+import { Footer } from '@/components/layout/Footer'
 
 export default function CommunityPage() {
     const [trees, setTrees] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-    const [user, setUser] = useState<any>(null)
-    const supabase = createClient()
-
-    useEffect(() => {
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            setUser(user)
-        }
-        checkUser()
-    }, [supabase])
 
     useEffect(() => {
         async function fetchTrees() {
@@ -38,41 +29,7 @@ export default function CommunityPage() {
     return (
         <div className="min-h-screen bg-[#FDFBF7] font-['Be_Vietnam_Pro',sans-serif]">
             {/* Header */}
-            <header className="sticky top-0 z-50 w-full bg-[#FDFBF7]/90 backdrop-blur-md border-b border-[#D4AF37]/20 px-6 lg:px-20 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="p-2 bg-[#8B0000] rounded-lg text-white">
-                            <BookOpen className="w-6 h-6" />
-                        </div>
-                        <h2 className="text-xl font-black tracking-tight text-[#8B0000]">GIA PHẢ VIỆT</h2>
-                    </Link>
-
-                    <nav className="hidden md:flex items-center gap-10">
-                        <Link className="text-sm font-semibold hover:text-primary transition-colors" href="/#features">Tính năng</Link>
-                        <Link className="text-sm font-bold text-primary transition-colors" href="/community">Cộng đồng</Link>
-                        <Link className="text-sm font-semibold hover:text-primary transition-colors" href="/#about">Về chúng tôi</Link>
-                        <Link className="text-sm font-semibold hover:text-primary transition-colors" href="/#pricing">Bảng giá</Link>
-                    </nav>
-
-                    <div className="flex items-center gap-4">
-                        {user ? (
-                            <Link href="/dashboard">
-                                <button className="bg-primary text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
-                                    Vào Dashboard
-                                </button>
-                            </Link>
-                        ) : (
-                            <>
-                                <Link href="/login">
-                                    <button className="bg-primary text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
-                                        Bắt đầu ngay
-                                    </button>
-                                </Link>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </header>
+            <Navbar />
 
             <main>
                 {/* Hero Section */}
@@ -186,55 +143,7 @@ export default function CommunityPage() {
             </main>
 
             {/* Footer */}
-            <footer className="bg-white border-t border-slate-100 pt-20 pb-10 px-6 lg:px-20">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                        <div className="col-span-1 md:col-span-1">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2 bg-[#8B0000] rounded-lg text-white scale-75 origin-left">
-                                    <BookOpen className="w-6 h-6" />
-                                </div>
-                                <h2 className="text-xl font-black tracking-tight text-[#8B0000] uppercase">Gia Phả Việt</h2>
-                            </div>
-                            <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                                Dự án văn hóa số hướng tới việc lưu giữ và phát huy giá trị gia đình Việt Nam trong thời đại mới.
-                            </p>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-6">Sản phẩm</h4>
-                            <ul className="flex flex-col gap-4 text-sm text-slate-500">
-                                <li><Link className="hover:text-primary transition-colors" href="/#features">Tính năng</Link></li>
-                                <li><Link className="hover:text-primary transition-colors" href="/community">Cộng đồng</Link></li>
-                                <li><Link className="hover:text-primary transition-colors" href="/sample">Mẫu gia phả</Link></li>
-                                <li><Link className="hover:text-primary transition-colors" href="/#pricing">Bảng giá</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-6">Hỗ trợ</h4>
-                            <ul className="flex flex-col gap-4 text-sm text-slate-500">
-                                <li><Link className="hover:text-primary transition-colors" href="/guide">Hướng dẫn sử dụng</Link></li>
-                                <li><Link className="hover:text-primary transition-colors" href="/dashboard/generations">Hệ thống thế hệ</Link></li>
-                                <li><Link className="hover:text-primary transition-colors" href="/dashboard/prayers">Văn khấn</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-6">Pháp lý</h4>
-                            <ul className="flex flex-col gap-4 text-sm text-slate-500">
-                                <li><Link className="hover:text-primary transition-colors" href="#">Điều khoản dịch vụ</Link></li>
-                                <li><Link className="hover:text-primary transition-colors" href="#">Chính sách bảo mật</Link></li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-xs text-slate-400">© 2024 Gia Phả Việt. Được tạo bởi Phan Trung Tính.</p>
-                        <p className="text-xs text-slate-400">Tiếng Việt (Vietnam)</p>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     )
 }
