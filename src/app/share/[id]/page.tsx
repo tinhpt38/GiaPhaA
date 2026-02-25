@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import TreeVisualizer from '@/components/tree/TreeVisualizer'
 import { Button } from '@/components/ui/button'
-import { ReactFlowProvider, useReactFlow } from '@xyflow/react'
+
 import {
     ZoomIn,
     ZoomOut,
@@ -28,27 +28,16 @@ function SharePageContent({
     hasVoted,
     onVoteChange
 }: any) {
-    const reactFlowInstance = useReactFlow()
-
     const handleZoomIn = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.zoomIn()
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
-        }
+        setZoom((prev: number) => Math.min(prev + 10, 200))
     }
 
     const handleZoomOut = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.zoomOut()
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
-        }
+        setZoom((prev: number) => Math.max(prev - 10, 10))
     }
 
     const handleFitView = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.fitView({ padding: 0.2, duration: 800 })
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
-        }
+        setZoom(100)
     }
 
     return (
@@ -258,22 +247,20 @@ export default function ShareTreePage() {
 
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-[#f8f6f6]">
-            <ReactFlowProvider>
-                <SharePageContent
-                    id={id}
-                    tree={tree}
-                    members={members}
-                    zoom={zoom}
-                    setZoom={setZoom}
-                    viewCount={viewCount}
-                    voteCount={voteCount}
-                    hasVoted={hasVoted}
-                    onVoteChange={(voted: boolean) => {
-                        setHasVoted(voted)
-                        setVoteCount(prev => voted ? prev + 1 : prev - 1)
-                    }}
-                />
-            </ReactFlowProvider>
+            <SharePageContent
+                id={id}
+                tree={tree}
+                members={members}
+                zoom={zoom}
+                setZoom={setZoom}
+                viewCount={viewCount}
+                voteCount={voteCount}
+                hasVoted={hasVoted}
+                onVoteChange={(voted: boolean) => {
+                    setHasVoted(voted)
+                    setVoteCount(prev => voted ? prev + 1 : prev - 1)
+                }}
+            />
         </div>
     )
 }

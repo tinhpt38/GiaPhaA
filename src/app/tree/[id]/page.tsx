@@ -6,8 +6,9 @@ import { createClient } from '@/utils/supabase/client'
 import TreeVisualizer from '@/components/tree/TreeVisualizer'
 import { TreeSettings } from '@/components/tree/TreeSettings'
 import { MemberForm } from '@/components/tree/MemberForm'
+import { LayoutSettingsPanel, DiagramSettings, defaultDiagramSettings } from '@/components/tree/LayoutSettingsPanel'
 import { Button } from '@/components/ui/button'
-import { ReactFlowProvider, useReactFlow } from '@xyflow/react'
+
 import {
     Search,
     Undo2,
@@ -24,6 +25,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Settings,
+    Settings2,
     Trash2,
     FileJson,
     FileSpreadsheet,
@@ -68,30 +70,21 @@ function TreeBuilderContent({
     loadTreeData,
     setTree // Add this prop
 }: any) {
-    const reactFlowInstance = useReactFlow()
-
     const [showMemberList, setShowMemberList] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
+    const [showSettingsPanel, setShowSettingsPanel] = useState(false)
+    const [diagramSettings, setDiagramSettings] = useState<DiagramSettings>(defaultDiagramSettings)
 
     const handleZoomIn = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.zoomIn()
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
-        }
+        setZoom((prev: number) => Math.min(prev + 10, 200))
     }
 
     const handleZoomOut = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.zoomOut()
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
-        }
+        setZoom((prev: number) => Math.max(prev - 10, 10))
     }
 
     const handleFitView = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.fitView({ padding: 0.2, duration: 800 })
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
-        }
+        setZoom(100)
     }
 
     const handleExportPDF = async () => {
@@ -194,6 +187,17 @@ function TreeBuilderContent({
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
+                    {/* Settings Panel Toggle */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowSettingsPanel(!showSettingsPanel)}
+                        className="flex items-center gap-2 border-[#e5e1e1] px-2 md:px-3 text-primary"
+                    >
+                        <Settings2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Giao diện</span>
+                    </Button>
+
                     {/* Member List Toggle */}
                     <Button
                         variant="outline"
@@ -325,13 +329,6 @@ function TreeBuilderContent({
                                     onClick={() => {
                                         handleNodeClick(member)
                                         if (window.innerWidth < 768) setShowMemberList(false)
-                                        // Auto focus node
-                                        if (reactFlowInstance) {
-                                            const node = reactFlowInstance.getNode(member.id)
-                                            if (node) {
-                                                reactFlowInstance.setCenter(node.position.x + 150, node.position.y + 50, { zoom: 1.2, duration: 800 })
-                                            }
-                                        }
                                     }}
                                     className="p-3 rounded-lg bg-[#f8f6f6] hover:bg-[#ffebeb] cursor-pointer transition-all border border-transparent hover:border-primary/20 group hover:shadow-sm"
                                 >
@@ -419,7 +416,7 @@ function TreeBuilderContent({
                                 onAddSpouse={handleAddSpouse}
                                 onEdit={handleNodeClick}
                                 onDelete={handleDelete}
-                                onNodeDragStop={handleNodeDragStop}
+                                diagramSettings={diagramSettings}
                             />
                         </div>
                     )}
@@ -437,6 +434,15 @@ function TreeBuilderContent({
                         </div>
                     )}
                 </main>
+
+                {/* Right Settings Panel */}
+                {showSettingsPanel && (
+                    <LayoutSettingsPanel
+                        settings={diagramSettings}
+                        onChange={setDiagramSettings}
+                        onClose={() => setShowSettingsPanel(false)}
+                    />
+                )}
 
             </div>
         </>
@@ -614,25 +620,23 @@ export default function TreeDetailPage() {
 
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-[#f8f6f6]">
-            <ReactFlowProvider>
-                <TreeBuilderContent
-                    id={id}
-                    tree={tree}
-                    members={members}
-                    selectedState={selectedState}
-                    setSelectedState={setSelectedState}
-                    handleNodeClick={handleNodeClick}
-                    handleAddChild={handleAddChild}
-                    handleAddSpouse={handleAddSpouse}
-                    handleDelete={handleDelete}
-                    handleDeleteTree={handleDeleteTree} // Pass it here
-                    handleNodeDragStop={handleNodeDragStop}
-                    zoom={zoom}
-                    setZoom={setZoom}
-                    loadTreeData={loadTreeData}
-                    setTree={setTree} // Pass setTree
-                />
-            </ReactFlowProvider>
+            <TreeBuilderContent
+                id={id}
+                tree={tree}
+                members={members}
+                selectedState={selectedState}
+                setSelectedState={setSelectedState}
+                handleNodeClick={handleNodeClick}
+                handleAddChild={handleAddChild}
+                handleAddSpouse={handleAddSpouse}
+                handleDelete={handleDelete}
+                handleDeleteTree={handleDeleteTree} // Pass it here
+                handleNodeDragStop={handleNodeDragStop}
+                zoom={zoom}
+                setZoom={setZoom}
+                loadTreeData={loadTreeData}
+                setTree={setTree} // Pass setTree
+            />
         </div>
     )
 }
