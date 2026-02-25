@@ -28,6 +28,8 @@ interface TreeVisualizerProps {
     // We keep onNodeDragStop in interface just to prevent breaking parent component
     // though it won't be used by PrimeReact
     onNodeDragStop?: (updates: any) => void
+    // Ref to expose zoom functionalities to parent
+    transformComponentRef?: React.RefObject<any>;
 }
 
 export default function TreeVisualizer({
@@ -37,7 +39,8 @@ export default function TreeVisualizer({
     onAddSpouse,
     onEdit,
     onDelete,
-    readOnly = false
+    readOnly = false,
+    transformComponentRef
 }: TreeVisualizerProps) {
 
     // Transform flat DB members into hierarchical Family Groups
@@ -272,21 +275,15 @@ export default function TreeVisualizer({
                     maxScale={3}
                     centerOnInit={true}
                     limitToBounds={false}
+                    ref={transformComponentRef}
+                    onZoom={(ref) => {
+                        // Triggers when zooming, we can notify parent about zoom level but currently the ref approach is easier
+                        // Let parent call ref.current.instance.transformState.scale directly if needed
+                    }}
                 >
                     {({ zoomIn, zoomOut, resetTransform }) => (
                         <>
-                            <div className="absolute top-4 right-4 z-50 flex gap-2 bg-white p-2 rounded-lg shadow-xl border border-gray-200">
-                                <Button variant="ghost" size="icon" onClick={() => zoomIn()} title="Phóng to">
-                                    <ZoomIn className="w-4 h-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={() => zoomOut()} title="Thu nhỏ">
-                                    <ZoomOut className="w-4 h-4" />
-                                </Button>
-                                <div className="w-[1px] bg-gray-200 mx-1 h-8" />
-                                <Button variant="ghost" size="icon" onClick={() => resetTransform()} title="Mặc định">
-                                    <RotateCcw className="w-4 h-4" />
-                                </Button>
-                            </div>
+                            {/* Float zoom controls moved to Header */}
 
                             <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
                                 <div className="min-w-max p-16">

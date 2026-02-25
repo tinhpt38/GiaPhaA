@@ -7,23 +7,18 @@ import TreeVisualizer from '@/components/tree/TreeVisualizer'
 import { TreeSettings } from '@/components/tree/TreeSettings'
 import { MemberForm } from '@/components/tree/MemberForm'
 import { Button } from '@/components/ui/button'
-import { ReactFlowProvider, useReactFlow } from '@xyflow/react'
+import React, { useRef } from 'react'
 import {
     Search,
     Undo2,
-    Redo2,
     ZoomIn,
     ZoomOut,
     FileDown,
     Share2,
     Plus,
     Locate,
-    BookOpen,
     X,
     Users as UsersIcon,
-    ChevronLeft,
-    ChevronRight,
-    Settings,
     Trash2,
     FileJson,
     FileSpreadsheet,
@@ -68,29 +63,29 @@ function TreeBuilderContent({
     loadTreeData,
     setTree // Add this prop
 }: any) {
-    const reactFlowInstance = useReactFlow()
+    const transformComponentRef = useRef<any>(null)
 
     const [showMemberList, setShowMemberList] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
 
     const handleZoomIn = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.zoomIn()
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
+        if (transformComponentRef.current) {
+            transformComponentRef.current.zoomIn()
+            setZoom(Math.round(transformComponentRef.current.instance.transformState.scale * 100))
         }
     }
 
     const handleZoomOut = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.zoomOut()
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
+        if (transformComponentRef.current) {
+            transformComponentRef.current.zoomOut()
+            setZoom(Math.round(transformComponentRef.current.instance.transformState.scale * 100))
         }
     }
 
     const handleFitView = () => {
-        if (reactFlowInstance) {
-            reactFlowInstance.fitView({ padding: 0.2, duration: 800 })
-            setZoom(Math.round(reactFlowInstance.getZoom() * 100))
+        if (transformComponentRef.current) {
+            transformComponentRef.current.resetTransform()
+            setZoom(100)
         }
     }
 
@@ -107,11 +102,6 @@ function TreeBuilderContent({
                 backgroundColor: '#f8f6f6',
                 quality: 1,
                 pixelRatio: 3, // Tăng chất lượng ảnh lên mức 3 cho in ấn sắc nét
-                filter: (node) => {
-                    // Loại bỏ các nút điều khiển của ReactFlow khỏi ảnh chụp
-                    return !node.classList?.contains('react-flow__controls') &&
-                        !node.classList?.contains('react-flow__panel')
-                }
             })
 
             const pdf = new jsPDF({
@@ -326,11 +316,10 @@ function TreeBuilderContent({
                                         handleNodeClick(member)
                                         if (window.innerWidth < 768) setShowMemberList(false)
                                         // Auto focus node
-                                        if (reactFlowInstance) {
-                                            const node = reactFlowInstance.getNode(member.id)
-                                            if (node) {
-                                                reactFlowInstance.setCenter(node.position.x + 150, node.position.y + 50, { zoom: 1.2, duration: 800 })
-                                            }
+                                        if (transformComponentRef.current) {
+                                            // TODO: Center node using transformWrapper logic if needed,
+                                            // currently reset transform to see the node
+                                            transformComponentRef.current.resetTransform()
                                         }
                                     }}
                                     className="p-3 rounded-lg bg-[#f8f6f6] hover:bg-[#ffebeb] cursor-pointer transition-all border border-transparent hover:border-primary/20 group hover:shadow-sm"
@@ -411,9 +400,10 @@ function TreeBuilderContent({
                             </Button>
                         </div>
                     ) : (
-                        <div className="w-full h-full relative">
+                        <div className="w-full h-full relative" id="tree-export-element">
                             <TreeVisualizer
                                 initialMembers={members}
+                                transformComponentRef={transformComponentRef}
                                 onNodeClick={handleNodeClick}
                                 onAddChild={handleAddChild}
                                 onAddSpouse={handleAddSpouse}
@@ -614,25 +604,24 @@ export default function TreeDetailPage() {
 
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-[#f8f6f6]">
-            <ReactFlowProvider>
-                <TreeBuilderContent
-                    id={id}
-                    tree={tree}
-                    members={members}
-                    selectedState={selectedState}
-                    setSelectedState={setSelectedState}
-                    handleNodeClick={handleNodeClick}
-                    handleAddChild={handleAddChild}
-                    handleAddSpouse={handleAddSpouse}
-                    handleDelete={handleDelete}
-                    handleDeleteTree={handleDeleteTree} // Pass it here
-                    handleNodeDragStop={handleNodeDragStop}
-                    zoom={zoom}
-                    setZoom={setZoom}
-                    loadTreeData={loadTreeData}
-                    setTree={setTree} // Pass setTree
-                />
-            </ReactFlowProvider>
+            <TreeBuilderContent
+                id={id}
+                tree={tree}
+                members={members}
+                selectedState={selectedState}
+                setSelectedState={setSelectedState}
+                handleNodeClick={handleNodeClick}
+                handleAddChild={handleAddChild}
+                handleAddSpouse={handleAddSpouse}
+                handleDelete={handleDelete}
+                handleDeleteTree={handleDeleteTree} // Pass it here
+                handleNodeDragStop={handleNodeDragStop}
+                zoom={zoom}
+                setZoom={setZoom}
+                loadTreeData={loadTreeData}
+                setTree={setTree} // Pass setTree
+            />
         </div>
     )
 }
+
