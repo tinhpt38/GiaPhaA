@@ -66,6 +66,7 @@ export default function TreeVisualizer({
                 father_name: m.father_name,
                 mother_name: m.mother_name,
                 canAddSpouse: true,
+                showParents: false, // Default to false, will compute later
                 onEdit: () => onEdit && onEdit(m),
                 onAddChild: () => onAddChild && onAddChild(m.id),
                 onAddSpouse: () => onAddSpouse && onAddSpouse(m.id),
@@ -154,6 +155,24 @@ export default function TreeVisualizer({
             }
         })
 
+        // Pass 4: Determine polygamy and set showParents flag for children
+        // We find any group with >2 members, and mark all members who have the primaryId as a parent
+        // or any of the spouses as a parent, to show their parents.
+        const polygamousGroupIds = new Set<string>()
+        familyGroups.forEach((group, pId) => {
+            if (group.length > 2) {
+                polygamousGroupIds.add(pId)
+                group.forEach(m => polygamousGroupIds.add(m.id)) // Add spouses to the set too
+            }
+        })
+
+        // Apply showParents flag to members
+        initialMembers.forEach(m => {
+            if (m.parent_id && polygamousGroupIds.has(m.parent_id)) {
+                nodeDataMap.get(m.id)!.showParents = true
+            }
+        })
+
         // 3. Build Tree Hierarchy
         const treeNodesMap = new Map<string, FamilyTreeNode>()
 
@@ -201,11 +220,17 @@ export default function TreeVisualizer({
     // Render a family group (Main member + Spouses)
     const nodeTemplate = (node: FamilyTreeNode) => {
         return (
-            <div className="flex gap-4 items-center justify-center">
+            <div className="flex gap-8 items-center justify-center relative">
                 {node.data.members.map((member, index) => (
                     <React.Fragment key={member.id}>
-                        {index > 0 && <div className="text-pink-500 font-bold text-xl px-2">❤️</div>}
-                        <MemberNode data={member} />
+                        {index > 0 && (
+                            <div className="text-pink-500 font-bold text-xl z-10 bg-[#f8f9fa] px-2">
+                                ❤️
+                            </div>
+                        )}
+                        <div className="w-[280px] flex justify-center"> {/* Keep width consistent for symmetric centering */}
+                            <MemberNode data={member} />
+                        </div>
                     </React.Fragment>
                 ))}
             </div>
@@ -242,17 +267,26 @@ export default function TreeVisualizer({
                 .p-organizationchart .p-organizationchart-line-down {
                     background: #b1b1b7;
                     width: 2px;
-                    height: 20px !important;
+                    height: 24px !important;
                     margin: 0 auto;
+                }
+                .p-organizationchart .p-organizationchart-line-down:first-child {
+                    /* PrimeReact default line originates from the center of the first Table Data cell */
+                    /* But with flex groups, the first TD contains the entire group */
                 }
                 .p-organizationchart .p-organizationchart-line-left {
                     border-right: 2px solid #b1b1b7;
                 }
                 .p-organizationchart .p-organizationchart-line-right {
                     border-left: 2px solid #b1b1b7;
+                    border-radius: 0;
                 }
                 .p-organizationchart .p-organizationchart-line-top {
                     border-top: 2px solid #b1b1b7;
+                }
+                .p-organizationchart .p-organizationchart-lines {
+                    /* PrimeReact organization line wrapping tr elements */
+                    transform: translateY(-2px);
                 }
                 .p-organizationchart .p-node-toggler {
                     display: none !important; /* Hide PrimeReact's built in expand/collapse button which breaks the lines and adds massive empty space */

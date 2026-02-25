@@ -29,6 +29,7 @@ export type MemberNodeData = {
     onEdit?: () => void
     onDelete?: () => void
     isReadOnly?: boolean
+    showParents?: boolean
 }
 
 function MemberNode({ data }: { data: MemberNodeData }) {
@@ -41,16 +42,31 @@ function MemberNode({ data }: { data: MemberNodeData }) {
 
     const NodeContent = (
         <div className={`
-                  px-3 py-2 rounded-xl border-2 bg-white w-[160px] cursor-default transition-all relative overflow-visible
-                  hover:scale-105
+                  px-3 py-2 rounded-xl bg-white w-[160px] cursor-default transition-all relative
+                  hover:scale-105 shadow-md
                   ${isDeceased
-                ? 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                : (isMale ? 'border-sky-500 shadow-sky-50 shadow-md hover:shadow-lg' : (isFemale ? 'border-pink-400 shadow-pink-50 shadow-md hover:shadow-lg' : 'border-gray-400 shadow-md'))
+                ? 'shadow-[0_0_15px_rgba(251,191,36,0.3)]'
+                : (isMale ? 'shadow-sky-50 hover:shadow-lg' : (isFemale ? 'shadow-pink-50 hover:shadow-lg' : ''))
             }
                   ${data.isRoot ? 'ring-2 ring-yellow-500 ring-offset-2' : ''}
                 `}>
 
-            <div className="flex flex-col items-center">
+            {/* BORDERS SVG OVERLAYS */}
+            {isDeceased ? (
+                <>
+                    <img src="/border/top-left-border-deceased.svg" alt="" className="absolute -top-2.5 -left-2.5 w-12 h-12 pointer-events-none" />
+                    <img src="/border/top-right-border-deceased.svg" alt="" className="absolute -top-2.5 -right-2.5 w-12 h-12 pointer-events-none" />
+                    <img src="/border/bot-left-border-deceased.svg" alt="" className="absolute -bottom-2.5 -left-2.5 w-12 h-12 pointer-events-none" />
+                    <img src="/border/bot-right-border-deceased.svg" alt="" className="absolute -bottom-2.5 -right-2.5 w-12 h-12 pointer-events-none" />
+                </>
+            ) : (
+                <>
+                    <img src="/border/left-border-alive.svg" alt="" className="absolute top-0 left-0 w-auto h-full pointer-events-none" />
+                    <img src="/border/right-border-alive.svg" alt="" className="absolute top-0 right-0 w-auto h-full pointer-events-none" />
+                </>
+            )}
+
+            <div className="flex flex-col items-center mt-2 mb-1">
                 <div className={`
                         w-10 h-10 rounded-full mb-1 flex items-center justify-center text-base font-bold text-white shadow-sm overflow-hidden border-2
                         ${isDeceased ? 'border-amber-200 bg-amber-100 text-amber-700' : (isMale ? 'border-sky-100 bg-sky-500' : 'border-pink-100 bg-pink-400')}
@@ -75,7 +91,7 @@ function MemberNode({ data }: { data: MemberNodeData }) {
 
                 {data.dates && <div className="text-[10px] text-gray-400 mt-1 font-mono">{data.dates}</div>}
 
-                {(data.father_name || data.mother_name) && (
+                {data.showParents && (data.father_name || data.mother_name) && (
                     <div className="text-[9px] text-slate-500 mt-1.5 flex flex-col items-center bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
                         {data.father_name && <span>Cha: <span className="font-semibold text-slate-600">{data.father_name}</span></span>}
                         {data.mother_name && <span>Mẹ: <span className="font-semibold text-slate-600">{data.mother_name}</span></span>}
