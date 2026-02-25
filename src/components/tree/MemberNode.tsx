@@ -42,7 +42,7 @@ function MemberNode({ data }: { data: MemberNodeData }) {
 
     const NodeContent = (
         <div className={`
-                  px-3 py-2 rounded-tl-[12px] rounded-br-[12px] bg-white w-[160px] cursor-default transition-all relative
+                  px-3 py-2 rounded-tl-[12px] rounded-br-[12px] ${isDeceased ? 'bg-[#fcf5eb]' : 'bg-white'} w-[160px] cursor-default transition-all relative
                   hover:scale-105 shadow-md
                   ${isDeceased
                 ? 'shadow-[0_0_15px_rgba(251,191,36,0.3)]'

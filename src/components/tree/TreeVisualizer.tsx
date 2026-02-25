@@ -220,12 +220,14 @@ export default function TreeVisualizer({
     // Render a family group (Main member + Spouses)
     const nodeTemplate = (node: FamilyTreeNode) => {
         return (
-            <div className="flex gap-8 items-center justify-center relative">
+            <div className="flex gap-4 items-center justify-center relative">
                 {node.data.members.map((member, index) => (
                     <React.Fragment key={member.id}>
                         {index > 0 && (
-                            <div className="text-pink-500 font-bold text-xl z-10 bg-[#f8f9fa] px-2">
-                                ❤️
+                            <div className="z-10 shrink-0 w-[50px] md:w-[70px]">
+                                <div className="w-full h-[1px] bg-[#eab978] flex items-center justify-center">
+                                    <div className="w-[7px] h-[7px] rounded-full border border-[#eab978] bg-[#f8f9fa]"></div>
+                                </div>
                             </div>
                         )}
                         <div className="w-[280px] flex justify-center"> {/* Keep width consistent for symmetric centering */}
@@ -265,24 +267,40 @@ export default function TreeVisualizer({
                     padding: 0 !important;
                 }
                 .p-organizationchart .p-organizationchart-line-down {
-                    background: #b1b1b7;
-                    width: 2px;
-                    height: 24px !important;
+                    background: #eab978;
+                    width: 1px;
+                    height: 28px !important;
                     margin: 0 auto;
+                    position: relative;
+                }
+                /* Hollow ring ornament resembling the o-o-o beads in the SVG */
+                .p-organizationchart .p-organizationchart-line-down::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 7px;
+                    height: 7px;
+                    border: 1px solid #eab978;
+                    border-radius: 50%;
+                    background: #f8f9fa;
+                    box-shadow: 0 0 0 2px #f8f9fa inset;
                 }
                 .p-organizationchart .p-organizationchart-line-down:first-child {
                     /* PrimeReact default line originates from the center of the first Table Data cell */
                     /* But with flex groups, the first TD contains the entire group */
                 }
                 .p-organizationchart .p-organizationchart-line-left {
-                    border-right: 2px solid #b1b1b7;
+                    border-right: 1px solid #eab978;
+                    border-radius: 0 0 16px 0;
                 }
                 .p-organizationchart .p-organizationchart-line-right {
-                    border-left: 2px solid #b1b1b7;
-                    border-radius: 0;
+                    border-left: 1px solid #eab978;
+                    border-radius: 0 0 0 16px;
                 }
                 .p-organizationchart .p-organizationchart-line-top {
-                    border-top: 2px solid #b1b1b7;
+                    border-top: 1px solid #eab978;
                 }
                 .p-organizationchart .p-organizationchart-lines {
                     /* PrimeReact organization line wrapping tr elements */

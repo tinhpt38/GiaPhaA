@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70.12 138.63">
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70.12 117.27">
   <defs>
     <style>
       .cls-1 {
         fill: none;
-        stroke: #995817;
+        stroke: #eab978;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
@@ -16,7 +16,7 @@
       <line class="cls-1" x1="69.62" y1="6.6" x2="65.76" y2="6.6"/>
       <line class="cls-1" x1="62.21" y1="6.6" x2="58.62" y2="6.6"/>
       <line class="cls-1" x1="2.81" y1="53.52" x2="2.81" y2="49.94"/>
-      <line class="cls-1" x1="2.81" y1="138.13" x2="2.81" y2="64.23"/>
+      <line class="cls-1" x1="2.81" y1="116.77" x2="2.81" y2="64.23"/>
       <line class="cls-1" x1="2.81" y1="60.67" x2="2.81" y2="57.09"/>
       <path class="cls-1" d="M2.88,46.39C4.11,24.21,22.48,6.6,44.97,6.6h2.95"/>
       <g>
