@@ -42,7 +42,7 @@ function MemberNode({ data }: { data: MemberNodeData }) {
 
     const NodeContent = (
         <div className={`
-                  px-3 py-2 rounded-xl bg-white w-[160px] cursor-default transition-all relative
+                  px-3 py-2 rounded-tl-[12px] rounded-br-[12px] bg-white w-[160px] cursor-default transition-all relative
                   hover:scale-105 shadow-md
                   ${isDeceased
                 ? 'shadow-[0_0_15px_rgba(251,191,36,0.3)]'
@@ -61,8 +61,28 @@ function MemberNode({ data }: { data: MemberNodeData }) {
                 </>
             ) : (
                 <>
-                    <img src="/border/left-border-alive.svg" alt="" className="absolute top-0 left-0 w-auto h-full pointer-events-none" />
-                    <img src="/border/right-border-alive.svg" alt="" className="absolute top-0 right-0 w-auto h-full pointer-events-none" />
+                    <img src="/border/left-border-alive.svg" alt=""
+                        className="absolute w-auto h-[calc(100%+5px)] pointer-events-none"
+                        style={{
+                            top: '-5px',
+                            left: '-3px',
+                            borderTopLeftRadius: '12px',
+                            borderBottomRightRadius: '12px',
+                            borderBottomLeftRadius: '0px',
+                            borderTopRightRadius: '0px'
+                        }}
+                    />
+                    <img src="/border/right-border-alive.svg" alt=""
+                        className="absolute w-auto h-[calc(100%+10px)] pointer-events-none"
+                        style={{
+                            top: '-5px',
+                            right: '-3px',
+                            borderTopRightRadius: '12px',
+                            borderBottomLeftRadius: '12px',
+                            borderTopLeftRadius: '0px',
+                            borderBottomRightRadius: '0px'
+                        }}
+                    />
                 </>
             )}
 

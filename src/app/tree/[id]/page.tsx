@@ -379,11 +379,12 @@ function TreeBuilderContent({
                 )}
 
                 {/* Main Canvas Area */}
-                <main className="flex-1 relative overflow-hidden"
+                <main className="flex-1 relative overflow-hidden bg-[#f0eadd]"
                     style={{
-                        backgroundImage: 'radial-gradient(#d1d5db 1px, transparent 1px)',
-                        backgroundSize: '20px 20px',
-                        backgroundColor: '#f8f6f6'
+                        backgroundImage: "url('/builder-backgroud.svg')",
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
                     }}
                 >
                     {members.length === 0 ? (
